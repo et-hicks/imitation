@@ -1,25 +1,8 @@
-# syntax = docker/dockerfile:1
+FROM node:lts-alpine AS base
 
-# Adjust NODE_VERSION as desired
-ARG NODE_VERSION=23.9.0
-FROM node:${NODE_VERSION}-slim AS base
-
-LABEL fly_launch_runtime="Next.js"
-
-# Next.js app lives here
+# Stage 1: Install dependencies
+FROM base AS deps
 WORKDIR /app
-
-# Set production environment
-ENV NODE_ENV="production"
-
-
-# Throw-away build stage to reduce size of final image
-FROM base AS build
-
-# Build arguments
-ARG NEXT_PUBLIC_EXAMPLE="value" \
-    NEXT_PUBLIC_OTHER="=Other value"
-
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
@@ -28,25 +11,20 @@ RUN apt-get update -qq && \
 COPY package-lock.json package.json ./
 RUN npm ci --include=dev
 
-# Copy application code
+# Stage 2: Build the application
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN corepack enable pnpm && pnpm run build
 
+# Stage 3: Production server
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+RUN if [ -d "/app/public" ]; then cp -r /app/public ./public; fi # Copy public folder if it exists
 
-# Final stage for app image
-FROM base
-
-# Copy built application
-COPY --from=build /app /app
-COPY --from=build /app/.next/standalone /app
-COPY --from=build /app/.next/static /app/.next/static
-COPY --from=build /app/public /app/public
-
-
-
-# Entrypoint sets up the container.
-ENTRYPOINT [ "/app/docker-entrypoint.js" ]
-
-# Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD [ "node", "server.js" ]
-
+CMD ["node", "server.js"]
