@@ -10,12 +10,15 @@ LABEL fly_launch_runtime="Next.js"
 WORKDIR /app
 
 # Set production environment
-ENV NEXT_TELEMETRY_DISABLED="1" \
-    NODE_ENV="production"
+ENV NODE_ENV="production"
 
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
+
+# Build arguments
+ARG NEXT_PUBLIC_EXAMPLE="value" \
+    NEXT_PUBLIC_OTHER="=Other value"
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
@@ -34,10 +37,16 @@ FROM base
 
 # Copy built application
 COPY --from=build /app /app
+COPY --from=build /app/.next/standalone /app
+COPY --from=build /app/.next/static /app/.next/static
+COPY --from=build /app/public /app/public
+
+
 
 # Entrypoint sets up the container.
 ENTRYPOINT [ "/app/docker-entrypoint.js" ]
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD [ "npm", "run", "start" ]
+CMD [ "node", "server.js" ]
+
