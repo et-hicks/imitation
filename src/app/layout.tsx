@@ -35,7 +35,7 @@ export default function RootLayout({
             <Link href="/about" className="hover:text-gray-300">About</Link>
             <Link href="/solutions" className="hover:text-gray-300">Solutions</Link>
             <Link href="/careers" className="hover:text-gray-300">Careers</Link>
-            <Link href="/presictions" className="hover:text-gray-300">Predictions</Link>
+            <Link href="/predictions" className="hover:text-gray-300">Predictions</Link>
           </nav>
         </header>
         {children}
