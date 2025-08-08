@@ -27,8 +27,10 @@
   },
   "dockerfile": {
     "build": "defer",
-    "args": {
-      "build": {}
+    "envs": {
+      "base": {
+        "NEXT_TELEMETRY_DISABLED": "1"
+      }
     }
   }
 }

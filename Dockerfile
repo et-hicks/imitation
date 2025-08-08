@@ -10,15 +10,12 @@ LABEL fly_launch_runtime="Next.js"
 WORKDIR /app
 
 # Set production environment
-ENV NODE_ENV="production"
+ENV NEXT_TELEMETRY_DISABLED="1" \
+    NODE_ENV="production"
 
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
-
-# Build arguments
-ARG NEXT_PUBLIC_EXAMPLE="value" \
-    NEXT_PUBLIC_OTHER="=Other value"
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
