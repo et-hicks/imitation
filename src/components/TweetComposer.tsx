@@ -21,8 +21,8 @@ export default function TweetComposer() {
     console.log("Post clicked");
   };
   return (
-    <div className="w-[35%] mx-auto">
-      <div className="relative rounded-xl border border-white/10 bg-black/80 p-4 pb-16 shadow-md">
+    <div className="w-full sm:w-2/3 lg:w-[35%] mx-auto">
+      <div className="relative rounded-xl border-[6px] border-white/10 bg-black/80 p-4 pb-16 shadow-md">
         <textarea
           ref={textareaRef}
           value={content}
