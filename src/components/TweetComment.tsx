@@ -2,16 +2,15 @@
 
 import Image from "next/image";
 
-type TweetTextCardProps = {
+type TweetCommentProps = {
   onOpenThread?: () => void;
   fullWidth?: boolean;
 };
 
-export default function TweetTextCard({ onOpenThread, fullWidth = false }: TweetTextCardProps) {
+export default function TweetComment({ onOpenThread, fullWidth = false }: TweetCommentProps) {
   const handleLike = () => console.log("liked tweet");
-  const handleRestack = () => console.log("restacked tweet");
-  const handleSave = () => console.log("saved tweet");
   const handleComment = () => console.log("commented on tweet");
+
   return (
     <div className={`${fullWidth ? "w-full" : "w-full sm:w-2/3 lg:w-[35%]"} mx-auto mt-4`}>
       <div
@@ -34,7 +33,7 @@ export default function TweetTextCard({ onOpenThread, fullWidth = false }: Tweet
               alt="Profile"
               width={100}
               height={100}
-              className="h-12 w-12 max-h-[100px] max-w-[100px] rounded-full object-cover"
+              className="h-10 w-10 max-h-[100px] max-w-[100px] rounded-full object-cover"
             />
             <div className="leading-tight">
               <div className="font-medium">Jane Doe</div>
@@ -52,14 +51,7 @@ export default function TweetTextCard({ onOpenThread, fullWidth = false }: Tweet
               <span>{"<3"}</span>
               <span>15k</span>
             </button>
-            <button type="button" onClick={handleRestack} className="flex items-center gap-2 rounded-md px-3 py-1 hover:bg-white/10">
-              <span>{"-><-"}</span>
-              <span>50</span>
-            </button>
-            <button type="button" onClick={handleSave} className="flex items-center gap-2 rounded-md px-3 py-1 hover:bg-white/10">
-              <span>{"|v|"}</span>
-              <span>1k</span>
-            </button>
+            <div className="flex-1" />
             <button type="button" onClick={handleComment} className="flex items-center gap-2 rounded-md px-3 py-1 hover:bg-white/10">
               <span>{"O>"}</span>
               <span>32</span>

@@ -29,17 +29,20 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <header className="sticky top-0 z-50 w-full bg-black">
-          <nav className="mx-auto flex h-14 max-w-6xl items-center justify-center gap-8 px-4 text-sm text-white">
-            <Link href="/" className="hover:text-gray-300">Home</Link>
-            <Link href="/careers" className="hover:text-gray-300">Careers</Link>
-            <Link href="/about" className="hover:text-gray-300">About</Link>
-            <div className="relative inline-flex items-center group pb-3">
-              <Link href="/solutions" className="hover:text-gray-300">Solutions</Link>
-              <div className="absolute left-0 top-full mt-2 hidden w-44 rounded-md border border-white/10 bg-black/90 py-2 shadow-lg z-50 group-hover:block group-focus-within:block">
-                <Link href="/twitter" className="block px-4 py-2 hover:bg-white/10">Twitter</Link>
-                <Link href="/predictions" className="block px-4 py-2 hover:bg-white/10">Predictions</Link>
+          <nav className="relative mx-auto flex h-14 max-w-6xl items-center justify-center px-4 text-sm text-white">
+            <div className="flex items-center gap-8">
+              <Link href="/" className="hover:text-gray-300">Home</Link>
+              <Link href="/careers" className="hover:text-gray-300">Careers</Link>
+              <Link href="/about" className="hover:text-gray-300">About</Link>
+              <div className="relative inline-flex items-center group pb-3">
+                <Link href="/solutions" className="hover:text-gray-300">Solutions</Link>
+                <div className="absolute left-0 top-full mt-2 hidden w-44 rounded-md border border-white/10 bg-black/90 py-2 shadow-lg z-50 group-hover:block group-focus-within:block">
+                  <Link href="/twitter" className="block px-4 py-2 hover:bg-white/10">Twitter</Link>
+                  <Link href="/predictions" className="block px-4 py-2 hover:bg-white/10">Predictions</Link>
+                </div>
               </div>
             </div>
+            <Link href="/login" className="absolute right-4 rounded-md border border-white/20 px-4 py-1.5 hover:bg-white/10">Login</Link>
           </nav>
         </header>
         {children}
