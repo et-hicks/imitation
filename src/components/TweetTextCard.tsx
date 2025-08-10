@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
+import CommentDialog from "@/components/CommentDialog";
 
 type TweetTextCardProps = {
   onOpenThread?: () => void;
@@ -38,15 +40,17 @@ export default function TweetTextCard({
     (typeof profileName === "string" || typeof profileName === "undefined") &&
     (typeof profileUrl === "string" || typeof profileUrl === "undefined");
 
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
   if (!isValid) {
     return null;
   }
   const handleLike = () => console.log("liked tweet");
   const handleRestack = () => console.log("restacked tweet");
   const handleSave = () => console.log("saved tweet");
-  const handleComment = () => console.log("commented on tweet");
+  const handleComment = () => setIsCommentOpen(true);
   return (
-    <div className={`${fullWidth ? "w-full" : "w-full sm:w-2/3 lg:w-[35%]"} mx-auto mt-4`}>
+    <>
+      <div className={`${fullWidth ? "w-full" : "w-full sm:w-2/3 lg:w-[35%]"} mx-auto mt-4`}>
       <div
         className="rounded-xl border-[6px] border-white/10 bg-black/80 p-4 text-white shadow-md cursor-pointer"
         onClick={onOpenThread}
@@ -93,14 +97,23 @@ export default function TweetTextCard({
               <span>{"|v|"}</span>
               <span>{saves ?? "1k"}</span>
             </button>
-            <button type="button" onClick={handleComment} className="flex items-center gap-2 rounded-md px-3 py-1 hover:bg-white/10">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleComment();
+              }}
+              className="flex items-center gap-2 rounded-md px-3 py-1 hover:bg-white/10"
+            >
               <span>{"O>"}</span>
               <span>{replies ?? "32"}</span>
             </button>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+      <CommentDialog isOpen={isCommentOpen} onClose={() => setIsCommentOpen(false)} />
+    </>
   );
 }
 
