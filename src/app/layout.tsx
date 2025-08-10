@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import AuthProvider from "@/components/AuthProvider";
+import ToastProvider from "@/components/ToastProvider";
 import NavAuthStatus from "@/components/NavAuthStatus";
 import "./globals.css";
 
@@ -68,6 +69,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
+          <ToastProvider>
           <header className="sticky top-0 z-50 w-full bg-black">
             <nav className="relative mx-auto flex h-14 max-w-6xl items-center justify-center px-4 text-sm text-white">
               <div className="flex items-center gap-8">
@@ -82,6 +84,7 @@ export default function RootLayout({
             </nav>
           </header>
           {children}
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

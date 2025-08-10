@@ -89,6 +89,7 @@ export default function TwitterFeed() {
         {tweets.map((t, idx) => (
           <TweetTextCard
             key={`${t.userId}-${idx}`}
+            id={idx}
             onOpenThread={() => {
               // eslint-disable-next-line no-console
               console.log("open tweet thread:", { id: idx, userId: t.userId });

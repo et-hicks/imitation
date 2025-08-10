@@ -2,11 +2,14 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useAuth } from "@/components/AuthProvider";
+import { useToast } from "@/components/ToastProvider";
 import CommentDialog from "@/components/CommentDialog";
 
 type TweetCommentProps = {
   onOpenThread?: () => void;
   fullWidth?: boolean;
+  id?: string | number;
   userId?: string; // @username
   profileName?: string; // Display name
   body?: string;
@@ -17,15 +20,24 @@ type TweetCommentProps = {
 export default function TweetComment({
   onOpenThread,
   fullWidth = false,
+  id,
   userId,
   profileName,
   body,
   likes,
   replies,
 }: TweetCommentProps) {
-  const handleLike = () => console.log("liked tweet");
+  const { isAuthenticated } = useAuth();
+  const { showError } = useToast();
+  const handleLike = () => {
+    if (!isAuthenticated) return showError("cannot like comment because youre not logged in");
+    console.log("liked comment", { id });
+  };
   const [isCommentOpen, setIsCommentOpen] = useState(false);
-  const handleComment = () => setIsCommentOpen(true);
+  const handleComment = () => {
+    if (!isAuthenticated) return showError("cannot reply to tweet when not logged in");
+    setIsCommentOpen(true);
+  };
 
   return (
     <>
@@ -85,7 +97,14 @@ export default function TweetComment({
         </div>
         </div>
       </div>
-      <CommentDialog isOpen={isCommentOpen} onClose={() => setIsCommentOpen(false)} />
+      <CommentDialog
+        isOpen={isCommentOpen}
+        onClose={() => setIsCommentOpen(false)}
+        onPost={(text) => {
+          if (!isAuthenticated) return showError("cannot reply to tweet when not logged in");
+          console.log("posted comment:", text);
+        }}
+      />
     </>
   );
 }

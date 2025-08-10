@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/components/AuthProvider";
+import { useToast } from "@/components/ToastProvider";
 
 export default function TweetComposer() {
   const [content, setContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const { isAuthenticated } = useAuth();
+  const { showError } = useToast();
 
   const autoResize = () => {
     const el = textareaRef.current;
@@ -18,7 +22,10 @@ export default function TweetComposer() {
   }, [content]);
 
   const handlePostClick = () => {
-    console.log("Post clicked");
+    if (!isAuthenticated) return showError("cannot make tweet when not logged in");
+    if (content.trim().length < 1) return;
+    console.log("Post clicked", content);
+    setContent("");
   };
   return (
     <div className="w-full sm:w-2/3 lg:w-[35%] mx-auto">

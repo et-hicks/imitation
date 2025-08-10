@@ -3,10 +3,13 @@
 import Image from "next/image";
 import { useState } from "react";
 import CommentDialog from "@/components/CommentDialog";
+import { useAuth } from "@/components/AuthProvider";
+import { useToast } from "@/components/ToastProvider";
 
 type TweetTextCardProps = {
   onOpenThread?: () => void;
   fullWidth?: boolean;
+  id?: string | number;
   body?: string;
   likes?: number | string;
   replies?: number | string;
@@ -20,6 +23,7 @@ type TweetTextCardProps = {
 export default function TweetTextCard({
   onOpenThread,
   fullWidth = false,
+  id,
   body,
   likes,
   replies,
@@ -41,13 +45,27 @@ export default function TweetTextCard({
     (typeof profileUrl === "string" || typeof profileUrl === "undefined");
 
   const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const { showError } = useToast();
   if (!isValid) {
     return null;
   }
-  const handleLike = () => console.log("liked tweet");
-  const handleRestack = () => console.log("restacked tweet");
-  const handleSave = () => console.log("saved tweet");
-  const handleComment = () => setIsCommentOpen(true);
+  const handleLike = () => {
+    if (!isAuthenticated) return showError("cannot like comment because youre not logged in");
+    console.log("liked tweet", { id });
+  };
+  const handleRestack = () => {
+    if (!isAuthenticated) return showError("cannot reply to tweet when not logged in");
+    console.log("restacked tweet");
+  };
+  const handleSave = () => {
+    if (!isAuthenticated) return showError("cannot make tweet when not logged in");
+    console.log("saved tweet");
+  };
+  const handleComment = () => {
+    if (!isAuthenticated) return showError("cannot reply to tweet when not logged in");
+    setIsCommentOpen(true);
+  };
   return (
     <>
       <div className={`${fullWidth ? "w-full" : "w-full sm:w-2/3 lg:w-[35%]"} mx-auto mt-4`}>
@@ -112,7 +130,14 @@ export default function TweetTextCard({
         </div>
         </div>
       </div>
-      <CommentDialog isOpen={isCommentOpen} onClose={() => setIsCommentOpen(false)} />
+      <CommentDialog
+        isOpen={isCommentOpen}
+        onClose={() => setIsCommentOpen(false)}
+        onPost={(text) => {
+          if (!isAuthenticated) return showError("cannot reply to tweet when not logged in");
+          console.log("posted comment:", text);
+        }}
+      />
     </>
   );
 }

@@ -19,7 +19,10 @@ export default function CommentDialog({ isOpen, onClose, onPost }: CommentDialog
     }
   }, [isOpen]);
 
+  const isValid = content.trim().length > 1;
+
   const handlePost = () => {
+    if (!isValid) return;
     onPost?.(content);
     onClose();
     setContent("");
@@ -30,6 +33,14 @@ export default function CommentDialog({ isOpen, onClose, onPost }: CommentDialog
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="relative w-11/12 max-w-md rounded-xl border-[6px] border-white/10 bg-black/90 p-4 pb-14 shadow-lg">
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          className="absolute right-3 top-3 rounded-md px-2 py-1 text-sm text-white hover:bg-white/10"
+        >
+          Exit
+        </button>
         <textarea
           ref={textareaRef}
           value={content}
@@ -44,7 +55,10 @@ export default function CommentDialog({ isOpen, onClose, onPost }: CommentDialog
         <button
           type="button"
           onClick={handlePost}
-          className="absolute bottom-2 right-3 rounded-md bg-white px-4 py-1 text-sm font-medium text-black transition hover:bg-gray-200"
+          className={`absolute bottom-2 right-3 rounded-md px-4 py-1 text-sm font-medium transition ${
+            isValid ? "bg-white text-black hover:bg-gray-200" : "bg-white/30 text-black/50 cursor-not-allowed"
+          }`}
+          disabled={!isValid}
         >
           Post
         </button>
