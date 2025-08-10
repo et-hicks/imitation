@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
+import CommentDialog from "@/components/CommentDialog";
 
 type TweetCommentProps = {
   onOpenThread?: () => void;
@@ -22,10 +24,12 @@ export default function TweetComment({
   replies,
 }: TweetCommentProps) {
   const handleLike = () => console.log("liked tweet");
-  const handleComment = () => console.log("commented on tweet");
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const handleComment = () => setIsCommentOpen(true);
 
   return (
-    <div className={`${fullWidth ? "w-full" : "w-full sm:w-2/3 lg:w-[35%]"} mx-auto mt-4`}>
+    <>
+      <div className={`${fullWidth ? "w-full" : "w-full sm:w-2/3 lg:w-[35%]"} mx-auto mt-4`}>
       <div
         className="rounded-xl border-[6px] border-white/10 bg-black/80 p-4 text-white shadow-md cursor-pointer"
         onClick={onOpenThread}
@@ -66,14 +70,23 @@ export default function TweetComment({
               <span>{likes ?? "15k"}</span>
             </button>
             <div className="flex-1" />
-            <button type="button" onClick={handleComment} className="flex items-center gap-2 rounded-md px-3 py-1 hover:bg-white/10">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleComment();
+              }}
+              className="flex items-center gap-2 rounded-md px-3 py-1 hover:bg-white/10"
+            >
               <span>{"O>"}</span>
               <span>{replies ?? "32"}</span>
             </button>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+      <CommentDialog isOpen={isCommentOpen} onClose={() => setIsCommentOpen(false)} />
+    </>
   );
 }
 
