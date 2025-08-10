@@ -1,14 +1,124 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import TweetTextCard from "@/components/TweetTextCard";
 import TweetComment from "@/components/TweetComment";
+import { apiFetch } from "@/lib/api";
 
 type SlidingThreadPanelProps = {
   isOpen: boolean;
   onClose: () => void;
+  tweetId?: string | number | null;
 };
 
-export default function SlidingThreadPanel({ isOpen, onClose }: SlidingThreadPanelProps) {
+export default function SlidingThreadPanel({ isOpen, onClose, tweetId }: SlidingThreadPanelProps) {
+  type TweetPayload = {
+    id?: string | number;
+    body: string;
+    likes: number;
+    replies: number;
+    restacks: number;
+    saves: number;
+    userId: string;
+    profileName: string;
+    profileUrl?: string;
+  };
+
+  const [tweet, setTweet] = useState<TweetPayload | null>(null);
+  const [comments, setComments] = useState<
+    Array<{
+      userId?: string;
+      profileName?: string;
+      body?: string;
+      likes?: number | string;
+      replies?: number | string;
+      profileUrl?: string;
+    }>
+  >([]);
+
+  function isValidTweetPayload(data: any): data is TweetPayload {
+    return (
+      true
+      // data &&
+      // typeof data.body === "string" &&
+      // typeof data.likes === "number" &&
+      // typeof data.replies === "number" &&
+      // typeof data.restacks === "number" &&
+      // typeof data.saves === "number" &&
+      // typeof data.userId === "string" &&
+      // typeof data.profileName === "string" &&
+      // (typeof data.profileUrl === "string" || typeof data.profileUrl === "undefined")
+    );
+  }
+
+  useEffect(() => {
+    if (!isOpen || tweetId === undefined || tweetId === null) return;
+    (async () => {
+      try {
+        let result: any = null;
+        try {
+          result = await apiFetch<any>(`/tweet/${tweetId}`);
+        } catch (primaryErr) {
+          // eslint-disable-next-line no-console
+          console.warn(`Primary tweet fetch failed, trying fallback:`, primaryErr);
+          try {
+            // Fallback for APIs that use query filtering instead of RESTful path
+            const alt = await apiFetch<any>(`/tweet?id=eq.${tweetId}`);
+            result = alt;
+          } catch (altErr) {
+            // eslint-disable-next-line no-console
+            console.error(`Fallback tweet fetch failed:`, altErr);
+            result = null;
+          }
+        }
+
+        // Coerce result into an object if the API returns an array wrapper
+        const tweetObj = Array.isArray(result) ? result[0] : (result && result.data ? result.data : result);
+        // eslint-disable-next-line no-console
+        console.log(`Tweet detail resolved:`, tweetObj);
+
+        if (isValidTweetPayload(tweetObj)) {
+          setTweet(tweetObj);
+        } else {
+          // eslint-disable-next-line no-console
+          console.warn("Tweet payload invalid; not rendering:", tweetObj);
+          setTweet(null);
+        }
+
+        // Extract the canonical tweet id from the payload if present; fall back to the requested id
+        const commentsId = (tweetObj && (tweetObj.id as string | number | undefined)) ?? tweetId;
+        try {
+          let commentsRes: any = null;
+          try {
+            commentsRes = await apiFetch<any>(`/tweet/${commentsId}/comments`);
+          } catch (commentsPrimaryErr) {
+            // eslint-disable-next-line no-console
+            console.warn(`Primary comments fetch failed, trying fallback:`, commentsPrimaryErr);
+            try {
+              // Fallback for APIs that expose a comments table filtered by tweet id
+              commentsRes = await apiFetch<any>(`/comments?tweetId=eq.${commentsId}`);
+            } catch (commentsAltErr) {
+              // eslint-disable-next-line no-console
+              console.error(`Fallback comments fetch failed:`, commentsAltErr);
+              commentsRes = null;
+            }
+          }
+          // eslint-disable-next-line no-console
+          console.log(`GET /tweet/${commentsId}/comments result:`, commentsRes);
+          const arr = Array.isArray(commentsRes) ? commentsRes : [];
+          setComments(arr);
+        } catch (commentsErr) {
+          // eslint-disable-next-line no-console
+          console.error(`GET /tweet/${commentsId}/comments failed:`, commentsErr);
+          setComments([]);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`GET /tweet/${tweetId} failed:`, error);
+        setTweet(null);
+      }
+    })();
+  }, [isOpen, tweetId]);
   return (
     <div
       className={`fixed right-0 top-14 bottom-0 z-50 w-full sm:w-[420px] bg-black/95 border-l border-white/10 transform transition-transform duration-300 ease-out ${
@@ -29,9 +139,27 @@ export default function SlidingThreadPanel({ isOpen, onClose }: SlidingThreadPan
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-2 py-4 space-y-4">
-          <TweetTextCard fullWidth />
-          {Array.from({ length: 6 }).map((_, idx) => (
-            <TweetComment key={idx} fullWidth />
+          <TweetTextCard
+            fullWidth
+            body={tweet?.body}
+            likes={tweet?.likes}
+            replies={tweet?.replies}
+            restacks={tweet?.restacks}
+            saves={tweet?.saves}
+            userId={tweet?.userId}
+            profileName={tweet?.profileName}
+            profileUrl={tweet?.profileUrl}
+          />
+          {comments.map((c, idx) => (
+            <TweetComment
+              key={idx}
+              fullWidth
+              userId={c.userId}
+              profileName={c.profileName}
+              body={c.body}
+              likes={c.likes}
+              replies={c.replies}
+            />
           ))}
         </div>
       </div>
