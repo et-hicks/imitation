@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import AuthProvider from "@/components/AuthProvider";
+import NavAuthStatus from "@/components/NavAuthStatus";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -65,18 +67,22 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <header className="sticky top-0 z-50 w-full bg-black">
-          <nav className="relative mx-auto flex h-14 max-w-6xl items-center justify-center px-4 text-sm text-white">
-            <div className="flex items-center gap-8">
-              <Link href="/" className="hover:text-gray-300">Home</Link>
-              <Link href="/careers" className="hover:text-gray-300">Careers</Link>
-              <Link href="/about" className="hover:text-gray-300">About</Link>
-              <Solutions />
-            </div>
-            <Link href="/login" className="absolute right-4 rounded-md border border-white/20 px-4 py-1.5 hover:bg-white/10">Login</Link>
-          </nav>
-        </header>
-        {children}
+        <AuthProvider>
+          <header className="sticky top-0 z-50 w-full bg-black">
+            <nav className="relative mx-auto flex h-14 max-w-6xl items-center justify-center px-4 text-sm text-white">
+              <div className="flex items-center gap-8">
+                <Link href="/" className="hover:text-gray-300">Home</Link>
+                <Link href="/careers" className="hover:text-gray-300">Careers</Link>
+                <Link href="/about" className="hover:text-gray-300">About</Link>
+                <Solutions />
+              </div>
+              <div className="absolute right-4">
+                <NavAuthStatus />
+              </div>
+            </nav>
+          </header>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

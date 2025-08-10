@@ -1,11 +1,14 @@
 "use client";
 
 import { FormEvent, KeyboardEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function LoginForm() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
   const preventSpaceKey = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === " ") {
@@ -13,12 +16,23 @@ export default function LoginForm() {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // Intentionally allow empty username here; caller can add validation later
     // Log username to console as requested
     // eslint-disable-next-line no-console
     console.log(`user ${username} signed in`);
+    // Basic example using email/password with Supabase
+    const { error } = await supabase.auth.signInWithPassword({
+      email: username,
+      password,
+    });
+    if (error) {
+      // eslint-disable-next-line no-console
+      console.error("login failed", error);
+      return;
+    }
+    router.push("/");
   };
 
   return (

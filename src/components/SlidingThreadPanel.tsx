@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import TweetTextCard from "@/components/TweetTextCard";
 import TweetComment from "@/components/TweetComment";
 import { apiFetch } from "@/lib/api";
+import Spinner from "./Spinner";
 
 type SlidingThreadPanelProps = {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export default function SlidingThreadPanel({ isOpen, onClose, tweetId }: Sliding
       profileUrl?: string;
     }>
   >([]);
+  const [loading, setLoading] = useState(false);
 
   function isValidTweetPayload(data: any): data is TweetPayload {
     return (
@@ -54,6 +56,7 @@ export default function SlidingThreadPanel({ isOpen, onClose, tweetId }: Sliding
   useEffect(() => {
     if (!isOpen || tweetId === undefined || tweetId === null) return;
     (async () => {
+      setLoading(true);
       try {
         let result: any = null;
         try {
@@ -116,6 +119,8 @@ export default function SlidingThreadPanel({ isOpen, onClose, tweetId }: Sliding
         // eslint-disable-next-line no-console
         console.error(`GET /tweet/${tweetId} failed:`, error);
         setTweet(null);
+      } finally {
+        setLoading(false);
       }
     })();
   }, [isOpen, tweetId]);
@@ -139,6 +144,11 @@ export default function SlidingThreadPanel({ isOpen, onClose, tweetId }: Sliding
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-2 py-4 space-y-4">
+          {loading && (
+            <div className="flex justify-center py-6">
+              <Spinner size={24} />
+            </div>
+          )}
           <TweetTextCard
             fullWidth
             body={tweet?.body}

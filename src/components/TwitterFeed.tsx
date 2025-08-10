@@ -6,6 +6,7 @@ import TweetTextCard from "./TweetTextCard";
 import TweetComment from "./TweetComment";
 import SlidingThreadPanel from "./SlidingThreadPanel";
 import { apiFetch } from "@/lib/api";
+import Spinner from "./Spinner";
 
 export default function TwitterFeed() {
   const [isThreadOpen, setIsThreadOpen] = useState(false);
@@ -22,6 +23,7 @@ export default function TwitterFeed() {
       profileUrl?: string;
     }>
   >([]);
+  const [loading, setLoading] = useState(true);
 
   function isValidTweet(item: any): item is {
     body: string;
@@ -69,6 +71,8 @@ export default function TwitterFeed() {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("GET /home failed:", error);
+      } finally {
+        setLoading(false);
       }
     })();
   }, []);
@@ -77,6 +81,11 @@ export default function TwitterFeed() {
     <div className="min-h-[calc(100vh-56px)] bg-black">
       <TweetComposer />
       <div className="space-y-4">
+        {loading && (
+          <div className="flex justify-center py-10">
+            <Spinner size={28} />
+          </div>
+        )}
         {tweets.map((t, idx) => (
           <TweetTextCard
             key={`${t.userId}-${idx}`}
