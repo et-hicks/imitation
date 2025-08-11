@@ -38,6 +38,7 @@ export default function SlidingThreadPanel({ isOpen, onClose, tweetId }: Sliding
   >([]);
   const [loading, setLoading] = useState(false);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function isValidTweetPayload(data: any): data is TweetPayload {
     return (
       true
@@ -58,14 +59,17 @@ export default function SlidingThreadPanel({ isOpen, onClose, tweetId }: Sliding
     (async () => {
       setLoading(true);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let result: any = null;
         try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           result = await apiFetch<any>(`/tweet/${tweetId}`);
         } catch (primaryErr) {
           // eslint-disable-next-line no-console
           console.warn(`Primary tweet fetch failed, trying fallback:`, primaryErr);
           try {
             // Fallback for APIs that use query filtering instead of RESTful path
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const alt = await apiFetch<any>(`/tweet?id=eq.${tweetId}`);
             result = alt;
           } catch (altErr) {
@@ -91,14 +95,17 @@ export default function SlidingThreadPanel({ isOpen, onClose, tweetId }: Sliding
         // Extract the canonical tweet id from the payload if present; fall back to the requested id
         const commentsId = (tweetObj && (tweetObj.id as string | number | undefined)) ?? tweetId;
         try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let commentsRes: any = null;
           try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             commentsRes = await apiFetch<any>(`/tweet/${commentsId}/comments`);
           } catch (commentsPrimaryErr) {
             // eslint-disable-next-line no-console
             console.warn(`Primary comments fetch failed, trying fallback:`, commentsPrimaryErr);
             try {
               // Fallback for APIs that expose a comments table filtered by tweet id
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               commentsRes = await apiFetch<any>(`/comments?tweetId=eq.${commentsId}`);
             } catch (commentsAltErr) {
               // eslint-disable-next-line no-console

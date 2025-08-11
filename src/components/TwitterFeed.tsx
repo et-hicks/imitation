@@ -25,6 +25,7 @@ export default function TwitterFeed() {
   >([]);
   const [loading, setLoading] = useState(true);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function isValidTweet(item: any): item is {
     body: string;
     likes: number;
@@ -51,6 +52,7 @@ export default function TwitterFeed() {
   useEffect(() => {
     (async () => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await apiFetch<any>("/home");
         // eslint-disable-next-line no-console
         console.log("GET /home result:", result);
