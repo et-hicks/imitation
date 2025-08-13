@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/ToastProvider";
+import { BACKEND_URL } from "@/lib/env";
 
 export default function TweetComposer() {
   const [content, setContent] = useState("");
+  const [isPosting, setIsPosting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const { isAuthenticated } = useAuth();
-  const { showError } = useToast();
+  const { isAuthenticated, session, user } = useAuth();
+  const { showError, showSuccess } = useToast();
 
   const autoResize = () => {
     const el = textareaRef.current;
@@ -21,11 +23,39 @@ export default function TweetComposer() {
     autoResize();
   }, [content]);
 
-  const handlePostClick = () => {
+  const handlePostClick = async () => {
     if (!isAuthenticated) return showError("cannot make tweet when not logged in");
     if (content.trim().length < 1) return;
-    console.log("Post clicked", content);
-    setContent("");
+    if (!session?.access_token || !user?.id) return showError("Authentication error");
+
+    setIsPosting(true);
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/create-tweet/user/${user.id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          body: content.trim(),
+          is_comment: false,
+          parent_tweet_id: null
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to post tweet: ${response.status}`);
+      }
+
+      setContent("");
+      showSuccess("Tweet posted successfully!");
+    } catch (error) {
+      console.error("Error posting tweet:", error);
+      showError("Failed to post tweet. Please try again.");
+    } finally {
+      setIsPosting(false);
+    }
   };
   return (
     <div className="w-full sm:w-2/3 lg:w-[35%] mx-auto">
@@ -41,9 +71,10 @@ export default function TweetComposer() {
         <button
           type="button"
           onClick={handlePostClick}
-          className="absolute bottom-[10px] right-[10px] rounded-md bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-gray-200"
+          disabled={isPosting || content.trim().length < 1}
+          className="absolute bottom-[10px] right-[10px] rounded-md bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-gray-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          Post
+          {isPosting ? "Posting..." : "Post"}
         </button>
       </div>
     </div>

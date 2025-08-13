@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ethan Hicks Resume</title>
+  <style>
+    body {
+      /* font-family: Arial, sans-serif; */
+      font-family: "Times New Roman", Times, serif;
+      margin: 0 10px 0 10px;
+      line-height: 1.6;
+      color: #000;
+    }
+    h1 {
+      font-size: 28px;
+      margin: 0 0 4px 0;
+      text-align: center;
+    }
+    .contact {
+      font-size: 14px;
+      margin-bottom: 5px;
+      text-align: center;
+    }
+    h2 {
+      font-size: 18px;
+      border-bottom: 1px solid #000;
+      margin: 0 0 8px 0;
+    }
+    h3 {
+      font-size: 14px;
+      margin: 5px 0 2px 0px;
+    }
+    .subheader {
+      font-style: italic;
+      font-size: 14px;
+      margin: 0 0 6px 0px;
+    }
+    ul {
+      margin-top: 0;
+      padding-left: 40px;
+      margin-left: 0px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    .skills {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .skills span {
+        margin-right: 12px;
+        /* font-weight: bold; */
+        font-size: 13px;
+    }
+    .job-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        /* font-weight: bold; */
+    }
+    .left {
+        text-align: left;
+    }
+    .right {
+        text-align: right;
+    }
+    /* .skills-section { */
+      /* font-family: sans-serif; */
+      /* display: grid; */
+      /* grid-template-columns: 1fr; */
+      /* gap: 1.2rem; */
+      /* max-width: 600px; */
+      /* margin: 0 auto; */
+    /* } */
+
+    /* .skills-group{ */
+      /* margin-bottom: 0.2rem; */
+      /* font-size: 1.1rem; */
+      /* color: #1a202c; */
+    /* } */
+
+    .skills-sub {
+      margin: 0;
+      font-size: 13px;
+      /* color: #4a5568; */
+      /* font-size: 1rem; */
+    }
+    .skills-sub span {
+      font-weight: bold;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>ETHAN HICKS</h1>
+  <div class="contact">etmhicks@gmail.com &#x2022; (530) 616-5238</div>
+
+  <h2>EDUCATION</h2>
+  <h3>University of California, Berkeley</h3>
+  <!-- <div class="subheader">Bachelor of Arts in Data Science - Graduated Dec 2020</div> -->
+  <div class="job-header">
+    <span class="left">Bachelor of Arts in Data Science</span>
+    <span class="right">Graduated Dec 2020</span>
+  </div>
+
+  <h2>WORK EXPERIENCE</h2>
+
+  <h3>Software Engineer II</h3>
+  <!-- <div class="subheader">JPMorgan Chase – Jul 2022 to Present</div> -->
+  <div class="job-header">
+    <span class="left">JPMorgan Chase</span>
+    <span class="right">Jul 2022 - Present</span>
+  </div>
+  <ul>
+    <li>Implements the Financial Data Exchange API standard, a user consent and permissions based financial API dealing with sensitive transactions information, with fraud-resistant systems in mind</li>
+    <!-- <li>Designed, developed, and maintained a REST-based platform that serves 1.5 billion requests per month</li> -->
+     <li>Designed and scaled a REST-based microservices platform handling 1.5 billion monthly requests with high reliability and low latency</li>
+    <!-- <li>Refactored legacy monolith codebase into Spring-based micro-service architecture, reducing server costs by 50% by deploying specialized features on smaller servers</li> -->
+    <li>Led transition from a monolithic codebase to a Spring-based microservices architecture, cutting server costs by 50%</li>
+    <li>Developed Kafka-based web-hook notification infrastructure to inform clients about consenting operations, reducing API polling loads on servers by 100%</li>
+    <!-- <li>Develops user security permissions based financial data sharing </li> -->
+    <!-- <li>Coordinated cross-team communication for downstream REST call optimization, saving 50 milliseconds on average, resulting in thousands of dollars saved in compute costs, and better customer response times</li> -->
+    <li>Integrated Redis-based caching mechanisms for frequent repeated REST calls, saving up to 100 milliseconds per call, resulting in thousands of dollars saved in compute costs, and better customer response times</li>
+    <li>Automated Jenkins-based QA and Production CI/CD pipelines, resulting in 30+ minute faster deployment times, saving engineering headaches, and reducing time to resolution for rare production incidents</li>
+    <li>Championed engineering mentorship and guided 4 interns every summer, showing them how to write and maintain production level code, more advanced features of git and linux, and facilitating a learning environment</li>
+  </ul>
+
+  <h3>Java Backend Engineer</h3>
+  <!-- <div class="subheader">theLoops.io – Apr 2021 to Jul 2022</div> -->
+  <div class="job-header">
+    <span class="left">theLoops.io</span>
+    <span class="right">Apr 2021 to Jul 2022</span>
+  </div>
+  <ul>
+    <li>Created customer support operations software that increased startup customers from 2 to 8+ within a year</li>
+    <!-- <li>Integrated RESTful APIs with Spring to Hibernate entities for client-server communication</li> -->
+    <li>Reduced customer operation times by 30% by implementing a customizable support operation scoring system</li>
+    <!-- <li>Implemented data pipelines in SQL and Java from databases through AI models to surface insights directly to users, increasing customer satisfaction by 20%</li> -->
+    <!-- <li>Built SQL and Java pipelines from raw customer data through AI models, increasing ML training data by 50% and boosting CRM insights accuracy</li> -->
+    <li>Extracted and cleaned customer data and metadata in SQL from user behavior for machine learning team, directly increasing model training data by 50%, resulting in better AI predictions for CRM to customer interactions</li>
+  </ul>
+
+  <h3>Full Stack Engineer</h3>
+  <!-- <div class="subheader">Varty.io – Mar 2020 to Apr 2021</div> -->
+  <div class="job-header">
+    <span class="left">Varty.io</span>
+    <span class="right">Mar 2020 to Apr 2021</span>
+  </div>
+  <ul>
+    <li>Developed AWS EC2 instances running Node.js and Python to reduce client-side computing requirements by over 50%</li>
+    <!-- <li>Created movable video avatars with WebRTC, React, and PixiJS, differentiating Varty from other video conferencing apps</li> -->
+    <li>Built interactive frontend experiences with WebRTC, React and PixiJS for a real-time video conferencing product</li>
+    <!-- <li>Extracted user insights and KPIs for niche market research, leading to the first product sales</li> -->
+     <li>Extracted user insights to drive product-market fit for hosts in niche verticals, leading to first product sales</li>
+  </ul>
+
+  <h2>LANGUAGES AND SKILLS</h2>
+      <p class="skills-sub"><span>Technology:</span> Java (Spring), Go, Python, MySQL, Kafka, React, JavaScript, PixiJS, WebRTC</p> 
+      <p class="skills-sub"><span>Architecture & Infra:</span> Microservices, AWS, Jenkins, Terraform</p>
+      <p class="skills-sub"><span>Collaboration:</span> Cross-functional teamwork, Agile, Technical mentorship</p>
+  </div>
+  </div>
+
+</body>
+</html>

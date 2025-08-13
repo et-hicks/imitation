@@ -1,16 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/components/AuthProvider";
+import { useToast } from "@/components/ToastProvider";
+import { BACKEND_URL } from "@/lib/env";
 
 type CommentDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   onPost?: (text: string) => void;
+  parentTweetId?: string | number;
 };
 
-export default function CommentDialog({ isOpen, onClose, onPost }: CommentDialogProps) {
+export default function CommentDialog({ isOpen, onClose, onPost, parentTweetId }: CommentDialogProps) {
   const [content, setContent] = useState("");
+  const [isPosting, setIsPosting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const { session, user } = useAuth();
+  const { showError, showSuccess } = useToast();
 
   useEffect(() => {
     if (isOpen) {
@@ -21,11 +28,40 @@ export default function CommentDialog({ isOpen, onClose, onPost }: CommentDialog
 
   const isValid = content.trim().length > 1;
 
-  const handlePost = () => {
+  const handlePost = async () => {
     if (!isValid) return;
-    onPost?.(content);
-    onClose();
-    setContent("");
+    if (!session?.access_token || !user?.id) return showError("Authentication error");
+
+    setIsPosting(true);
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/create-tweet/user/${user.id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          body: content.trim(),
+          is_comment: true,
+          parent_tweet_id: parentTweetId || null
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to post comment: ${response.status}`);
+      }
+
+      onPost?.(content);
+      setContent("");
+      onClose();
+      showSuccess("Comment posted successfully!");
+    } catch (error) {
+      console.error("Error posting comment:", error);
+      showError("Failed to post comment. Please try again.");
+    } finally {
+      setIsPosting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -56,11 +92,11 @@ export default function CommentDialog({ isOpen, onClose, onPost }: CommentDialog
           type="button"
           onClick={handlePost}
           className={`absolute bottom-2 right-3 rounded-md px-4 py-1 text-sm font-medium transition ${
-            isValid ? "bg-white text-black hover:bg-gray-200" : "bg-white/30 text-black/50 cursor-not-allowed"
+            isValid && !isPosting ? "bg-white text-black hover:bg-gray-200" : "bg-white/30 text-black/50 cursor-not-allowed"
           }`}
-          disabled={!isValid}
+          disabled={!isValid || isPosting}
         >
-          Post
+          {isPosting ? "Posting..." : "Post"}
         </button>
       </div>
     </div>

@@ -133,6 +133,7 @@ export default function TweetTextCard({
       <CommentDialog
         isOpen={isCommentOpen}
         onClose={() => setIsCommentOpen(false)}
+        parentTweetId={id}
         onPost={(text) => {
           if (!isAuthenticated) return showError("cannot reply to tweet when not logged in");
           console.log("posted comment:", text);
