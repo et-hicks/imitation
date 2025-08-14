@@ -52,6 +52,14 @@ function Solutions() {
               Predictions
             </a>
           </MenuItem>
+          <MenuItem>
+            <a
+              href="/comic-image-generator"
+              className="block px-4 py-2 text-sm text-gray-200 data-focus:bg-white/10 data-focus:text-white data-focus:outline-hidden"
+            >
+              Comic Generator
+            </a>
+          </MenuItem>
         </div>
       </MenuItems>
     </Menu>
