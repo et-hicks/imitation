@@ -16,7 +16,7 @@ export default function CareersPage() {
           <p className="text-lg text-gray-200 leading-relaxed">
             A seasoned software engineer with 4+ years of experience building scalable financial systems and customer-focused products. 
             From scaling platforms that handle 1.5 billion monthly requests at JPMorgan Chase to helping startups grow from 2 to 8+ customers, 
-            I've consistently delivered high-impact solutions while mentoring the next generation of engineers.
+            I have consistently delivered high-impact solutions while mentoring the next generation of engineers.
           </p>
         </div>
 
