@@ -83,12 +83,13 @@ export default function RootLayout({
               <div className="flex items-center gap-8">
                 <Link href="/" className="hover:text-gray-300">Home</Link>
                 <Link href="/careers" className="hover:text-gray-300">Careers</Link>
-                <Link href="/about" className="hover:text-gray-300">About</Link>
-                <Solutions />
+                <Link href="/dna" className="hover:text-gray-300">DNA</Link>
+                {/* <Link href="/about" className="hover:text-gray-300">About</Link> */}
+                {/* <Solutions /> */}
               </div>
-              <div className="absolute right-4">
+              {/* <div className="absolute right-4">
                 <NavAuthStatus />
-              </div>
+              </div> */}
             </nav>
           </header>
           {children}
