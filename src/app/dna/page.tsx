@@ -12,6 +12,7 @@ export default function DnaPage() {
           Welcome to DNA Polymerase Project
         </h1>
         <p className="text-white text-2xl">Ethan, Thalia, and Mubassera</p>
+        <p className="text-white text-xl mt-2">this is a group project</p>
       </div>
     </main>
   );
