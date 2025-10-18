@@ -40,7 +40,7 @@ function loadMolstar(): Promise<MolstarBundle | null> {
 
   if (molstarLoader) return molstarLoader;
 
-  molstarLoader = new Promise((resolve, reject) => {
+  const loader = new Promise<MolstarBundle | null>((resolve, reject) => {
     const existingScript =
       document.querySelector<HTMLScriptElement>('script[data-molstar]');
 
@@ -80,13 +80,15 @@ function loadMolstar(): Promise<MolstarBundle | null> {
     );
 
     document.body.appendChild(script);
-  })
-    .catch(error => {
+  });
+
+  molstarLoader = loader
+    .catch((error): MolstarBundle | null => {
       console.error(error);
       molstarLoader = null;
       return null;
     })
-    .then(bundle => {
+    .then((bundle): MolstarBundle | null => {
       if (!bundle) molstarLoader = null;
       return bundle;
     });

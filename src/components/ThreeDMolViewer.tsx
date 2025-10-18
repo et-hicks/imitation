@@ -10,6 +10,7 @@ type ViewerStatus = 'loading' | 'ready' | 'error';
 
 declare global {
   interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     $3Dmol?: any;
   }
 }
@@ -18,8 +19,10 @@ type ThreeDMolViewerProps = {
   className?: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let threeDMolLoader: Promise<any | null> | null = null;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function loadThreeDMol(): Promise<any | null> {
   if (typeof window === 'undefined') return Promise.resolve(null);
 
@@ -77,6 +80,8 @@ function loadThreeDMol(): Promise<any | null> {
 
 export function ThreeDMolViewer({ className }: ThreeDMolViewerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // 3Dmol typings are not available, suppressing explicit any intentionally.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const viewerRef = useRef<any>(null);
   const [status, setStatus] = useState<ViewerStatus>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -153,6 +158,7 @@ export function ThreeDMolViewer({ className }: ThreeDMolViewerProps) {
 
     return () => {
       mounted = false;
+      const container = containerRef.current;
       if (viewerRef.current) {
         try {
           viewerRef.current.clear();
@@ -161,8 +167,8 @@ export function ThreeDMolViewer({ className }: ThreeDMolViewerProps) {
           console.warn('Error while disposing 3Dmol viewer.', error);
         }
       }
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
+      if (container) {
+        container.innerHTML = '';
       }
     };
   }, []);
