@@ -12,23 +12,3 @@ export NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 
 Mubassera Subah, Ethan Hicks, Thalia Matos
 
-Topic: DNA Polymerase Failures 
-
-We wish to investigate the effects of a misfolded protein - encoded in the DONSON gene - causing a wide range of issues, including hearing loss, microcephaly, and others.
-
-Protein:
-DONSON https://www.rcsb.org/structure/8OUW
-
-Disease:
-Meier-Gorlin syndrome
-
-Output: Website 
-
-Preliminary Sources (that may or may not be used in the final project):
-https://pmc.ncbi.nlm.nih.gov/articles/PMC7831139/
-https://jmg.bmj.com/content/57/3/195
-https://onlinelibrary.wiley.com/doi/10.1002/ajmg.a.61315
-https://www.rcsb.org/structure/8OUW
-
-
-
