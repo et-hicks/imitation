@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { MolstarViewer } from '../../components/MolstarViewer';
+import { ThreeDMolViewer } from '../../components/ThreeDMolViewer';
 
 export const metadata: Metadata = {
   title: 'DNA Project',
@@ -21,31 +22,38 @@ export default function DnaPage() {
           </p>
         </header>
 
-        <section className="flex flex-col items-stretch gap-12 lg:flex-row">
-          <div className="flex-1 space-y-6 text-slate-200">
-            <p>
-              DNA polymerase is responsible for synthesizing new strands of DNA by adding
-              nucleotides to a growing chain. The structure represented here captures the enzyme in
-              complex with DNA and a nucleotide, offering a snapshot of the replication machinery in
-              action.
+        <section className="space-y-8">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-semibold text-white">Viewer Comparison Sandbox</h2>
+            <p className="text-slate-300">
+              Evaluate Mol* and 3Dmol.js side-by-side while they render PDB entry 2O8B. Use this dual setup
+              to explore performance, interaction modes, and rendering fidelity as you refine the experience.
             </p>
-            <p>
-              Use the interactive Mol* canvas to rotate, zoom, and highlight the active site. We
-              recommend toggling representations to observe how the polymerase clamps around the DNA
-              duplex and positions the incoming nucleotide for catalysis.
-            </p>
-            <ul className="list-disc space-y-2 pl-6 text-slate-300">
-              <li>Active site residues coordinate the incoming dNTP and catalyze phosphodiester bond formation.</li>
-              <li>Metal ions stabilize the reaction intermediate and align the reactive groups.</li>
-              <li>The thumb domain secures the DNA template, ensuring replication fidelity.</li>
-            </ul>
           </div>
-          <div className="w-full min-w-[200px] lg:max-w-[50%]">
-            <MolstarViewer className="h-[420px]" />
+          <div className="grid gap-8 lg:grid-cols-2">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Mol* Viewer</h3>
+              <MolstarViewer className="h-[480px]" />
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">3Dmol.js Viewer</h3>
+              <ThreeDMolViewer className="h-[480px]" />
+            </div>
           </div>
         </section>
 
         <section className="grid gap-10 text-slate-200 md:grid-cols-2">
+          <div>
+            PLEASE IGNORE GPT UNVETTED TRASH AS WE WORK TOWARDS MAKING KNOWN TO BE ACCURATE
+          </div>
+          <div>
+            PLEASE IGNORE GPT UNVETTED TRASH AS WE WORK TOWARDS MAKING KNOWN TO BE ACCURATE
+          </div>
+          <div>
+            PLEASE IGNORE GPT UNVETTED TRASH AS WE WORK TOWARDS MAKING KNOWN TO BE ACCURATE
+          </div>
+
+
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold text-white">Visualization Notes</h2>
             <p>

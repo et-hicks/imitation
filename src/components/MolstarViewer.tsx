@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-const STRUCTURE_ID = '2O8B';
-const STRUCTURE_URL = `https://files.rcsb.org/download/${STRUCTURE_ID}.cif`;
+const STRUCTURE_ID = '2o8b';
+const STRUCTURE_URL = `https://models.rcsb.org/${STRUCTURE_ID}.bcif`;
 const MOLSTAR_VERSION = '5.0.0';
 const MOLSTAR_CDN_BASE = `https://cdn.jsdelivr.net/npm/molstar@${MOLSTAR_VERSION}/build/viewer`;
 
@@ -147,7 +147,7 @@ export function MolstarViewer({ className }: MolstarViewerProps) {
         }
 
         viewer = instance;
-        await instance.loadStructureFromUrl(STRUCTURE_URL, 'mmcif', {
+        await instance.loadStructureFromUrl(STRUCTURE_URL, 'bcif', {
           representationParams: {
             theme: { globalName: 'operator-name' },
           },
