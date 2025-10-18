@@ -1,10 +1,5 @@
 import type { Metadata } from 'next';
-import dynamic from 'next/dynamic';
-
-const MolstarViewer = dynamic(
-  () => import('../../components/MolstarViewer').then((mod) => mod.MolstarViewer),
-  { ssr: false }
-);
+import { MolstarViewer } from '../../components/MolstarViewer';
 
 export const metadata: Metadata = {
   title: 'DNA Project',
