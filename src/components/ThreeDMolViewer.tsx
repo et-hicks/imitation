@@ -1,10 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-const STRUCTURE_ID = '2O8B';
-const PDB_URL = `https://files.rcsb.org/download/${STRUCTURE_ID}.pdb`;
+const DEFAULT_MODEL_URL = 'https://files.rcsb.org/download/2O8B.pdb';
+const DEFAULT_FORMAT = 'pdb';
+const DEFAULT_BACKGROUND = '#0f172a';
 const THREEDMOL_SCRIPT_SRC = 'https://3Dmol.org/build/3Dmol-min.js';
+
+type StyleConfig = Record<string, unknown>;
+const DEFAULT_STYLE: StyleConfig = { cartoon: { color: 'spectrum' } };
 
 type ViewerStatus = 'loading' | 'ready' | 'error';
 
@@ -17,6 +21,10 @@ declare global {
 
 type ThreeDMolViewerProps = {
   className?: string;
+  modelUrl?: string;
+  format?: string;
+  style?: StyleConfig;
+  backgroundColor?: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,13 +86,27 @@ function loadThreeDMol(): Promise<any | null> {
   return threeDMolLoader;
 }
 
-export function ThreeDMolViewer({ className }: ThreeDMolViewerProps) {
+export function ThreeDMolViewer({
+  className,
+  modelUrl,
+  format,
+  style,
+  backgroundColor,
+}: ThreeDMolViewerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   // 3Dmol typings are not available, suppressing explicit any intentionally.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const viewerRef = useRef<any>(null);
   const [status, setStatus] = useState<ViewerStatus>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const resolvedModelUrl = modelUrl ?? DEFAULT_MODEL_URL;
+  const resolvedFormat = format ?? DEFAULT_FORMAT;
+  const resolvedStyle = useMemo<StyleConfig>(
+    () => style ?? DEFAULT_STYLE,
+    [style]
+  );
+  const resolvedBackground = backgroundColor ?? DEFAULT_BACKGROUND;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -113,22 +135,24 @@ export function ThreeDMolViewer({ className }: ThreeDMolViewerProps) {
 
       try {
         viewerRef.current = $3Dmol.createViewer(containerRef.current, {
-          backgroundColor: '#0f172a',
+          backgroundColor: resolvedBackground,
         });
 
-        const response = await fetch(PDB_URL);
+        const response = await fetch(resolvedModelUrl);
         if (!response.ok) {
-          throw new Error(`Failed to fetch PDB file: ${response.statusText}`);
+          throw new Error(
+            `Failed to fetch structure from ${resolvedModelUrl}: ${response.statusText}`
+          );
         }
 
-        const pdbData = await response.text();
+        const structureData = await response.text();
 
         if (!mounted || !viewerRef.current) {
           return;
         }
 
-        viewerRef.current.addModel(pdbData, 'pdb');
-        viewerRef.current.setStyle({}, { cartoon: { color: 'spectrum' } });
+        viewerRef.current.addModel(structureData, resolvedFormat);
+        viewerRef.current.setStyle({}, resolvedStyle);
         viewerRef.current.zoomTo();
         viewerRef.current.render();
 
@@ -141,7 +165,10 @@ export function ThreeDMolViewer({ className }: ThreeDMolViewerProps) {
           try {
             viewerRef.current.clear();
           } catch (clearError) {
-            console.warn('Error while clearing 3Dmol viewer after failure.', clearError);
+            console.warn(
+              'Error while clearing 3Dmol viewer after failure.',
+              clearError
+            );
           }
           viewerRef.current = null;
         }
@@ -171,7 +198,7 @@ export function ThreeDMolViewer({ className }: ThreeDMolViewerProps) {
         container.innerHTML = '';
       }
     };
-  }, []);
+  }, [resolvedModelUrl, resolvedFormat, resolvedStyle, resolvedBackground]);
 
   const containerClasses = [
     'relative w-full min-h-[360px] rounded-lg overflow-hidden bg-slate-900/60 border border-slate-800',
