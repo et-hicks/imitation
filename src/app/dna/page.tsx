@@ -11,6 +11,11 @@ const SERINE_STYLE: Record<string, unknown> = {
   stick: { colorscheme: 'Jmol', radius: 0.25 },
 };
 
+const GLUTAMATE_MODEL_URL = 'https://files.rcsb.org/ligands/download/GLU_ideal.sdf';
+const GLUTAMATE_STYLE: Record<string, unknown> = {
+  stick: { colorscheme: 'Jmol', radius: 0.25 },
+};
+
 export const metadata: Metadata = {
   title: 'DNA Project',
 };
@@ -69,19 +74,39 @@ export default function DnaPage() {
           />
         </section>
 
-        <section className="space-y-4 rounded-lg border border-slate-800 bg-slate-900/30 p-6">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-white">Lynch Syndrome</h2>
+        <section className="space-y-6">
+          <div className="space-y-3">
+            <h2 className="text-2xl font-semibold text-white">
+              S63E Mutation Causing Lynch Syndrome
+            </h2>
             <p className="text-slate-300">
-              Mutation: Serine (reference) → Glutamic Acid (variant)
+              The S63E substitution replaces serine with glutamic acid at position 63, introducing a
+              negative charge that can disrupt the polymerase&apos;s proofreading function.
             </p>
           </div>
-          <p className="text-slate-200">
-            This substitution replaces a neutral serine residue with a negatively charged glutamic
-            acid. The change can perturb local hydrogen bonding networks and alter electrostatic
-            interactions, potentially impacting the polymerase&apos;s proofreading fidelity
-            associated with Lynch syndrome.
-          </p>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-white">Serine (Reference)</h3>
+              <ThreeDMolViewer
+                className="h-[320px]"
+                modelUrl={SERINE_MODEL_URL}
+                format="sdf"
+                style={SERINE_STYLE}
+                backgroundColor="#020617"
+              />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-white">Glutamic Acid (Variant)</h3>
+              <ThreeDMolViewer
+                className="h-[320px]"
+                modelUrl={GLUTAMATE_MODEL_URL}
+                format="sdf"
+                style={GLUTAMATE_STYLE}
+                backgroundColor="#020617"
+              />
+            </div>
+          </div>
         </section>
       </div>
     </main>
