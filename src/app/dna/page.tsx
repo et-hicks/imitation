@@ -1,20 +1,12 @@
 import type { Metadata } from 'next';
 import { ThreeDMolViewer } from '../../components/ThreeDMolViewer';
+import { MutationTabs } from '../../components/MutationTabs';
 
 const POLYMERASE_MODEL_URL = 'https://files.rcsb.org/download/2O8B.pdb';
 const POLYMERASE_STYLE: Record<string, unknown> = {
   cartoon: { color: 'spectrum' },
 };
 
-const SERINE_MODEL_URL = 'https://files.rcsb.org/ligands/download/SER_ideal.sdf';
-const SERINE_STYLE: Record<string, unknown> = {
-  stick: { colorscheme: 'Jmol', radius: 0.25 },
-};
-
-const GLUTAMATE_MODEL_URL = 'https://files.rcsb.org/ligands/download/GLU_ideal.sdf';
-const GLUTAMATE_STYLE: Record<string, unknown> = {
-  stick: { colorscheme: 'Jmol', radius: 0.25 },
-};
 
 export const metadata: Metadata = {
   title: 'DNA Project',
@@ -54,60 +46,7 @@ export default function DnaPage() {
           />
         </section>
 
-        <section className="space-y-6">
-          <div className="space-y-3">
-            <h2 className="text-2xl font-semibold text-white">
-              Serine Amino Acid (Ligand SER)
-            </h2>
-            <p className="text-slate-300">
-              Compare the whole protein with an isolated serine residue. This viewer loads the SER
-              ligand model from the RCSB ligand library and highlights atomic detail using a stick
-              representation.
-            </p>
-          </div>
-          <ThreeDMolViewer
-            className="h-[360px]"
-            modelUrl={SERINE_MODEL_URL}
-            format="sdf"
-            style={SERINE_STYLE}
-            backgroundColor="#020617"
-          />
-        </section>
-
-        <section className="space-y-6">
-          <div className="space-y-3">
-            <h2 className="text-2xl font-semibold text-white">
-              S63E Mutation Causing Lynch Syndrome
-            </h2>
-            <p className="text-slate-300">
-              The S63E substitution replaces serine with glutamic acid at position 63, introducing a
-              negative charge that can disrupt the polymerase&apos;s proofreading function.
-            </p>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-white">Serine (Reference)</h3>
-              <ThreeDMolViewer
-                className="h-[320px]"
-                modelUrl={SERINE_MODEL_URL}
-                format="sdf"
-                style={SERINE_STYLE}
-                backgroundColor="#020617"
-              />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-white">Glutamic Acid (Variant)</h3>
-              <ThreeDMolViewer
-                className="h-[320px]"
-                modelUrl={GLUTAMATE_MODEL_URL}
-                format="sdf"
-                style={GLUTAMATE_STYLE}
-                backgroundColor="#020617"
-              />
-            </div>
-          </div>
-        </section>
+        <MutationTabs />
       </div>
     </main>
   );
