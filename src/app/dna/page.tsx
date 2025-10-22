@@ -6,7 +6,7 @@ const POLYMERASE_STYLE: Record<string, unknown> = {
   cartoon: { color: 'spectrum' },
 };
 
-const SERINE_MODEL_URL = 'https://files.rcsb.org/download/SER.cif';
+const SERINE_MODEL_URL = 'https://files.rcsb.org/ligands/download/SER_ideal.sdf';
 const SERINE_STYLE: Record<string, unknown> = {
   stick: { colorscheme: 'Jmol', radius: 0.25 },
 };
@@ -67,6 +67,21 @@ export default function DnaPage() {
             style={SERINE_STYLE}
             backgroundColor="#020617"
           />
+        </section>
+
+        <section className="space-y-4 rounded-lg border border-slate-800 bg-slate-900/30 p-6">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-semibold text-white">Lynch Syndrome</h2>
+            <p className="text-slate-300">
+              Mutation: Serine (reference) → Glutamic Acid (variant)
+            </p>
+          </div>
+          <p className="text-slate-200">
+            This substitution replaces a neutral serine residue with a negatively charged glutamic
+            acid. The change can perturb local hydrogen bonding networks and alter electrostatic
+            interactions, potentially impacting the polymerase&apos;s proofreading fidelity
+            associated with Lynch syndrome.
+          </p>
         </section>
       </div>
     </main>
