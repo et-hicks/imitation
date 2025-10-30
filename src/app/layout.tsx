@@ -87,9 +87,9 @@ export default function RootLayout({
                 {/* <Link href="/about" className="hover:text-gray-300">About</Link> */}
                 {/* <Solutions /> */}
               </div>
-              {/* <div className="absolute right-4">
+              <div className="absolute right-4">
                 <NavAuthStatus />
-              </div> */}
+              </div>
             </nav>
           </header>
           {children}

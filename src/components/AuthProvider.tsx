@@ -1,46 +1,68 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import type { Session, User } from "@supabase/supabase-js";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-type AuthCtx = {
-  user: User | null;
-  session: Session | null;
-  isAuthenticated: boolean;
+type AuthUser = {
+  id: number;
+  username: string;
 };
 
-const Ctx = createContext<AuthCtx>({ user: null, session: null, isAuthenticated: false });
+type AuthContextValue = {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  refresh: () => Promise<void>;
+};
+
+const AuthContext = createContext<AuthContextValue>({
+  user: null,
+  isAuthenticated: false,
+  loading: true,
+  refresh: async () => undefined,
+});
+
+async function fetchSession() {
+  const response = await fetch("/api/auth/session", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error("session request failed");
+  }
+  return (await response.json()) as { user: AuthUser | null };
+}
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange(
-      (_event: string, newSession: Session | null) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { user: sessionUser } = await fetchSession();
+      setUser(sessionUser);
+    } catch (error) {
+      console.error("failed to refresh session", error);
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-    );
-    return () => {
-      sub.subscription.unsubscribe();
-    };
   }, []);
 
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
   const value = useMemo(
-    () => ({ user, session, isAuthenticated: Boolean(session) }),
-    [user, session]
+    () => ({ user, isAuthenticated: Boolean(user), loading, refresh }),
+    [user, loading, refresh]
   );
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  return useContext(Ctx);
+  return useContext(AuthContext);
 }
-
-

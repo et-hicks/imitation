@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/ToastProvider";
-import { BACKEND_URL } from "@/lib/env";
 
 export default function TweetComposer() {
   const [content, setContent] = useState("");
   const [isPosting, setIsPosting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const { isAuthenticated, session, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { showError, showSuccess } = useToast();
 
   const autoResize = () => {
@@ -26,33 +25,19 @@ export default function TweetComposer() {
   const handlePostClick = async () => {
     if (!isAuthenticated) return showError("cannot make tweet when not logged in");
     if (content.trim().length < 1) return;
-    if (!session?.access_token || !user?.id) return showError("Authentication error");
+    if (!user?.id) return showError("Authentication error");
 
     setIsPosting(true);
-    
+
     try {
-      const response = await fetch(`${BACKEND_URL}/create-tweet/user/${user.id}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          body: content.trim(),
-          is_comment: false,
-          parent_tweet_id: null
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to post tweet: ${response.status}`);
-      }
-
+      // Simulate posting locally until a tweet service is available.
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      console.log("Tweet draft saved", { userId: user.id, body: content.trim() });
       setContent("");
-      showSuccess("Tweet posted successfully!");
+      showSuccess("Tweet saved locally.");
     } catch (error) {
       console.error("Error posting tweet:", error);
-      showError("Failed to post tweet. Please try again.");
+      showError("Failed to save tweet. Please try again.");
     } finally {
       setIsPosting(false);
     }

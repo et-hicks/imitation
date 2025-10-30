@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useAuth } from "./AuthProvider";
-import { supabase } from "@/lib/supabaseClient";
 
 export default function NavAuthStatus() {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return (
@@ -21,5 +24,3 @@ export default function NavAuthStatus() {
     </Link>
   );
 }
-
-

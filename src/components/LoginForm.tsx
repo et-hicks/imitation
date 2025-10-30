@@ -2,13 +2,16 @@
 
 import { FormEvent, KeyboardEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "./AuthProvider";
 
 export default function LoginForm() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+  const { refresh } = useAuth();
 
   const preventSpaceKey = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === " ") {
@@ -18,21 +21,27 @@ export default function LoginForm() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // Intentionally allow empty username here; caller can add validation later
-    // Log username to console as requested
-    // eslint-disable-next-line no-console
-    console.log(`user ${username} signed in`);
-    // Basic example using email/password with Supabase
-    const { error } = await supabase.auth.signInWithPassword({
-      email: username,
-      password,
-    });
-    if (error) {
-      // eslint-disable-next-line no-console
-      console.error("login failed", error);
-      return;
+    setError(null);
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "login failed" }));
+        setError(data.error ?? "login failed");
+        return;
+      }
+      await refresh();
+      router.push("/");
+    } catch (err) {
+      console.error("login failed", err);
+      setError("unexpected error logging in");
+    } finally {
+      setSubmitting(false);
     }
-    router.push("/");
   };
 
   return (
@@ -78,16 +87,16 @@ export default function LoginForm() {
           </button>
         </div>
       </div>
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <div>
         <button
           type="submit"
-          className="w-full rounded-lg bg-white px-4 py-2 font-medium text-black hover:bg-gray-200"
+          className="w-full rounded-lg bg-white px-4 py-2 font-medium text-black hover:bg-gray-200 disabled:opacity-60"
+          disabled={submitting}
         >
-          Sign In
+          {submitting ? "Signing In..." : "Sign In"}
         </button>
       </div>
     </form>
   );
 }
-
-

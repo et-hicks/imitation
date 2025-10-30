@@ -2,7 +2,6 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
 
 export default function SignupForm() {
   const [profileName, setProfileName] = useState("");
@@ -10,6 +9,7 @@ export default function SignupForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -19,20 +19,25 @@ export default function SignupForm() {
       return;
     }
     setError(null);
-    // eslint-disable-next-line no-console
-    console.log("create account:", { profileName, username });
-    const { error } = await supabase.auth.signUp({
-      email: username,
-      password,
-      options: {
-        data: { full_name: profileName },
-      },
-    });
-    if (error) {
-      setError(error.message);
-      return;
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, profileName }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "signup failed" }));
+        setError(data.error ?? "signup failed");
+        return;
+      }
+      router.push("/login");
+    } catch (err) {
+      console.error("signup failed", err);
+      setError("unexpected error creating account");
+    } finally {
+      setSubmitting(false);
     }
-    router.push("/");
   };
 
   return (
@@ -82,11 +87,13 @@ export default function SignupForm() {
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <button type="submit" className="w-full rounded-lg bg-white px-4 py-2 font-medium text-black hover:bg-gray-200">
-        Create account
+      <button
+        type="submit"
+        className="w-full rounded-lg bg-white px-4 py-2 font-medium text-black hover:bg-gray-200 disabled:opacity-60"
+        disabled={submitting}
+      >
+        {submitting ? "Creating account..." : "Create account"}
       </button>
     </form>
   );
 }
-
-

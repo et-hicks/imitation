@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 
 type TwitterUser = {
@@ -11,10 +11,17 @@ type TwitterUser = {
 };
 
 export default function ProfilePage() {
-  const { user } = useAuth();
-  const display = user?.user_metadata?.full_name || user?.email || "User";
+  const { user, isAuthenticated, refresh, loading } = useAuth();
+  const router = useRouter();
+  const display = user?.username || "User";
   const [activeTab, setActiveTab] = useState<"twitter" | "other">("twitter");
   const [twitterUser, setTwitterUser] = useState<TwitterUser | null>(null);
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, loading, router]);
 
   useEffect(() => {
     if (activeTab === "twitter" && !twitterUser) {
@@ -24,6 +31,12 @@ export default function ProfilePage() {
         .catch(() => setTwitterUser(null));
     }
   }, [activeTab, twitterUser]);
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    await refresh();
+    router.push("/");
+  };
 
   return (
     <main className="min-h-[calc(100vh-56px)] bg-black">
@@ -68,10 +81,7 @@ export default function ProfilePage() {
 
         <button
           type="button"
-          onClick={async () => {
-            await supabase.auth.signOut();
-            location.href = "/";
-          }}
+          onClick={handleLogout}
           className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200"
         >
           Logout
@@ -80,5 +90,3 @@ export default function ProfilePage() {
     </main>
   );
 }
-
-
