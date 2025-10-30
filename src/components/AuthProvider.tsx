@@ -17,6 +17,10 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    if (!supabase) {
+      return undefined;
+    }
+
     supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
