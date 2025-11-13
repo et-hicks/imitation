@@ -25,6 +25,12 @@ export default function Home() {
       icon: "💼",
       href: "/careers",
     },
+    {
+      title: "Sevodal",
+      description: "Daily seven-letter puzzle challenge",
+      icon: "🧪",
+      href: "/sevodal",
+    },
   ];
 
   return (

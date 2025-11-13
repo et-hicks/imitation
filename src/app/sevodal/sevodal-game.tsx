@@ -238,13 +238,10 @@ export default function SevodalGame() {
   );
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      handleKey(e.key);
-    };
-
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [handleKey]);
+    // surface solution in console for quick debugging when page loads
+    // eslint-disable-next-line no-console
+    console.log("Sevodal solution:", solution);
+  }, [solution]);
 
   useEffect(() => {
     if (toast) {
