@@ -107,6 +107,15 @@ const WORD_LIST = [
 const ROWS = 7;
 const COLS = 7;
 
+const getRandomWord = () =>
+  WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)] ?? "dislike";
+
+const createEmptyBoard = () =>
+  Array.from({ length: ROWS }, () => Array(COLS).fill(""));
+
+const createEmptyStatusGrid = (): Status[][] =>
+  Array.from({ length: ROWS }, () => Array(COLS).fill(""));
+
 type Status = "" | "correct" | "present" | "absent";
 
 const statusClass = (status: Status) => {
@@ -123,14 +132,10 @@ const statusClass = (status: Status) => {
 };
 
 export default function SevodalGame() {
-  const [solution] = useState(
-    () => WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)] ?? "dislike"
-  );
-  const [board, setBoard] = useState<string[][]>(
-    Array.from({ length: ROWS }, () => Array(COLS).fill(""))
-  );
-  const [statuses, setStatuses] = useState<Status[][]>(
-    Array.from({ length: ROWS }, () => Array(COLS).fill(""))
+  const [solution, setSolution] = useState(() => getRandomWord());
+  const [board, setBoard] = useState<string[][]>(() => createEmptyBoard());
+  const [statuses, setStatuses] = useState<Status[][]>(() =>
+    createEmptyStatusGrid()
   );
   const [activeRow, setActiveRow] = useState(0);
   const [currentCol, setCurrentCol] = useState(0);
@@ -174,7 +179,7 @@ export default function SevodalGame() {
 
     if (guess === solution) {
       setToast("congrats");
-      setGameOver(true);
+    setGameOver(true);
       return;
     }
 
@@ -237,6 +242,17 @@ export default function SevodalGame() {
     [currentCol, gameOver, handleBackspace, handleLetter, handleSubmit]
   );
 
+  const resetGame = useCallback(() => {
+    setSolution(getRandomWord());
+    setBoard(createEmptyBoard());
+    setStatuses(createEmptyStatusGrid());
+    setActiveRow(0);
+    setCurrentCol(0);
+    setToast(null);
+    setGameOver(false);
+    focusInput();
+  }, [focusInput]);
+
   useEffect(() => {
     // surface solution in console for quick debugging when page loads
     // eslint-disable-next-line no-console
@@ -291,8 +307,19 @@ export default function SevodalGame() {
       </div>
 
       {toast ? (
-        <div className="px-4 py-2 rounded bg-gray-800 text-sm uppercase tracking-wide">
-          {toast}
+        <div className="flex flex-col items-center gap-3">
+          <div className="px-4 py-2 rounded bg-gray-800 text-sm uppercase tracking-wide">
+            {toast}
+          </div>
+          {toast === "congrats" ? (
+            <button
+              className="rounded bg-sky-500 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white shadow transition hover:bg-sky-400"
+              onClick={resetGame}
+              type="button"
+            >
+              play again
+            </button>
+          ) : null}
         </div>
       ) : null}
 
