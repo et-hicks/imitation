@@ -123,13 +123,29 @@ export default function SevodalGame() {
     }
 
     const newStatuses: Status[][] = statuses.map((row) => [...row]);
+    const remainingCounts: Record<string, number> = {};
 
+    for (let i = 0; i < wordLength; i++) {
+      const solutionLetter = solution[i];
+      remainingCounts[solutionLetter] = (remainingCounts[solutionLetter] ?? 0) + 1;
+    }
+
+    // First pass: mark exact matches
     for (let i = 0; i < wordLength; i++) {
       const letter = guess[i];
       if (letter === solution[i]) {
         newStatuses[activeRow][i] = "correct";
-      } else if (solution.includes(letter)) {
+        remainingCounts[letter] -= 1;
+      }
+    }
+
+    // Second pass: mark present/absent using remaining counts
+    for (let i = 0; i < wordLength; i++) {
+      if (newStatuses[activeRow][i] === "correct") continue;
+      const letter = guess[i];
+      if (remainingCounts[letter] > 0) {
         newStatuses[activeRow][i] = "present";
+        remainingCounts[letter] -= 1;
       } else {
         newStatuses[activeRow][i] = "absent";
       }
