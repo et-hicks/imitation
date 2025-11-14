@@ -36,6 +36,18 @@ const statusClass = (status: Status) => {
   }
 };
 
+const statusToEmoji = (status: Status) => {
+  switch (status) {
+    case "correct":
+      return "🟩";
+    case "present":
+      return "🟨";
+    case "absent":
+    default:
+      return "◻️";
+  }
+};
+
 export default function SevodalGame() {
   const [wordLength, setWordLength] = useState(DEFAULT_WORD_LENGTH);
   const [solution, setSolution] = useState(() =>
@@ -53,6 +65,8 @@ export default function SevodalGame() {
   const [gameOver, setGameOver] = useState(false);
   const [awaitingSelection, setAwaitingSelection] = useState(true);
   const [shakingRow, setShakingRow] = useState<number | null>(null);
+  const [didWin, setDidWin] = useState(false);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const shakeTimeoutRef = useRef<number | null>(null);
 
@@ -84,6 +98,8 @@ export default function SevodalGame() {
       setToast(null);
       setGameOver(false);
       setShakingRow(null);
+      setDidWin(false);
+      setShareMessage(null);
       setAwaitingSelection(false);
       focusInput();
     },
@@ -124,12 +140,16 @@ export default function SevodalGame() {
 
     if (guess === solution) {
       setToast("congrats");
+      setDidWin(true);
+      setShareMessage(null);
       setGameOver(true);
       return;
     }
 
     if (activeRow === ROWS - 1) {
       setToast("better luck next time");
+      setDidWin(false);
+      setShareMessage(null);
       setGameOver(true);
       return;
     }
@@ -247,6 +267,31 @@ export default function SevodalGame() {
     ? "pick a length to begin."
     : `guess the secret ${wordLength}-letter word in seven tries. press enter to submit and backspace to delete.`;
 
+  const buildShareText = useCallback(() => {
+    const rows = statuses
+      .slice(0, activeRow + 1)
+      .map((row) =>
+        row
+          .slice(0, wordLength)
+          .map((status) => statusToEmoji(status))
+          .join("")
+      )
+      .join("\n");
+    return `${wordLength} ethanhicks.com/sevodal\n${rows}`;
+  }, [activeRow, statuses, wordLength]);
+
+  const handleShare = useCallback(async () => {
+    try {
+      if (!navigator?.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
+      }
+      await navigator.clipboard.writeText(buildShareText());
+      setShareMessage("Copied to clipboard—go flex on your friends!");
+    } catch (error) {
+      setShareMessage("Unable to copy. Try again?");
+    }
+  }, [buildShareText]);
+
   return (
     <main className="min-h-[calc(100vh-56px)] bg-black flex flex-col items-center justify-center text-white gap-8 p-4">
       <div className="text-center space-y-2">
@@ -267,8 +312,15 @@ export default function SevodalGame() {
             className="absolute h-0 w-0 opacity-0"
             onBlur={focusInput}
             onKeyDown={(e) => {
-              e.preventDefault();
-              handleKey(e.key);
+              const isShortcut = e.metaKey || e.ctrlKey || e.altKey;
+              const isLetter = /^[a-zA-Z]$/.test(e.key);
+              const isGameKey =
+                e.key === "Enter" || e.key === "Backspace" || isLetter;
+
+              if (!isShortcut && isGameKey) {
+                e.preventDefault();
+                handleKey(e.key);
+              }
             }}
             type="text"
           />
@@ -296,16 +348,28 @@ export default function SevodalGame() {
           </div>
 
           {toast ? (
+            <div className="px-4 py-2 rounded bg-gray-800 text-sm uppercase tracking-wide text-center">
+              {toast}
+            </div>
+          ) : null}
+
+          {gameOver ? (
             <div className="flex flex-col items-center gap-4">
-              <div className="px-4 py-2 rounded bg-gray-800 text-sm uppercase tracking-wide">
-                {toast}
-              </div>
-              {gameOver
-                ? renderLengthPicker(
-                    "Play again?",
-                    "Choose your next word length"
-                  )
-                : null}
+              {renderLengthPicker("Play again?", "Choose your next word length")}
+              {didWin ? (
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    className="rounded-xl border border-sky-400/60 bg-sky-600 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white shadow transition hover:bg-sky-500"
+                    onClick={handleShare}
+                    type="button"
+                  >
+                    copy game and show friends
+                  </button>
+                  {shareMessage ? (
+                    <p className="text-xs text-slate-300">{shareMessage}</p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           ) : null}
 
