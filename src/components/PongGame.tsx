@@ -162,6 +162,8 @@ class GameScene extends Phaser.Scene {
     private paddleSpeed = 600;
     private initialBallSpeed = 600;
     private socket: WebSocket | null = null;
+    private isPaused = false;
+    private pauseText!: Phaser.GameObjects.Text;
 
     constructor() {
         super({ key: 'GameScene' });
@@ -247,9 +249,63 @@ class GameScene extends Phaser.Scene {
                 }
                 this.scene.start('StartScene');
             });
+
+        // Pause UI
+        this.pauseText = this.add.text(width / 2, height / 2, 'PAUSED', {
+            fontSize: '60px',
+            color: '#ffffff',
+            fontFamily: 'Arial',
+        }).setOrigin(0.5).setVisible(false);
+
+        // Pause Input
+        if (this.input.keyboard) {
+            this.input.keyboard.on('keydown-Q', () => this.togglePause());
+            this.input.keyboard.on('keydown-ESC', () => this.togglePause());
+        }
+    }
+
+    togglePause() {
+        if (this.isPaused) {
+            // Unpause
+            this.pauseText.setText('Reconnecting...');
+            this.reconnectSocket();
+        } else {
+            // Pause
+            this.isPaused = true;
+            this.physics.pause();
+            if (this.socket) {
+                this.socket.close();
+                this.socket = null;
+            }
+            this.pauseText.setText('PAUSED').setVisible(true);
+        }
+    }
+
+    reconnectSocket() {
+        try {
+            this.socket = new WebSocket('ws://localhost:8000/ws/game');
+            this.socket.onopen = () => {
+                console.log('WebSocket reconnected');
+                this.isPaused = false;
+                this.physics.resume();
+                this.pauseText.setVisible(false);
+            };
+            this.socket.onerror = (e) => {
+                console.error("Reconnect failed", e);
+                // If reconnect fails, we could either stay paused or let them play offline.
+                // For now, let's assume we want to enforce connection or just let them wait.
+                // But to avoid locking the game if server is down, let's resume offline after a short delay or error?
+                // User said "upon unpausing ... should reconnect". Implicitly, wait for reconnect.
+                // I'll leave it hanging on "Reconnecting..." if it fails, as that's safer than desyncing state.
+            };
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     update() {
+        if (this.isPaused) return;
+
         // Left Paddle Control
         if (this.mode === '2player' || this.mode === '1player') {
             // Player control
