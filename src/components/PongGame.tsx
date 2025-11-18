@@ -12,7 +12,7 @@ export default function PongGame() {
             const config: Phaser.Types.Core.GameConfig = {
                 type: Phaser.AUTO,
                 width: 1200,
-                height: 900,
+                height: 800,
                 parent: gameContainer.current,
                 backgroundColor: '#000000',
                 fps: {
@@ -75,6 +75,13 @@ class StartScene extends Phaser.Scene {
         createButton(height / 2, '2 Player (WASD vs Arrows)', '2player');
         createButton(height / 2 + 100, '1 Player (vs AI)', '1player');
         createButton(height / 2 + 200, 'AI vs AI', 'ai_vs_ai');
+
+        // Keyboard shortcuts
+        if (this.input.keyboard) {
+            this.input.keyboard.on('keydown-ONE', () => this.scene.start('GameScene', { mode: '1player' }));
+            this.input.keyboard.on('keydown-TWO', () => this.scene.start('GameScene', { mode: '2player' }));
+            this.input.keyboard.on('keydown-A', () => this.scene.start('GameScene', { mode: 'ai_vs_ai' }));
+        }
     }
 }
 
@@ -142,6 +149,9 @@ class GameScene extends Phaser.Scene {
         this.ball = this.physics.add.image(width / 2, height / 2, 'ball');
         this.ball.setCollideWorldBounds(true);
         this.ball.setBounce(1, 1);
+
+        // Disable collision on left and right walls so ball can pass through
+        this.physics.world.setBoundsCollision(false, false, true, true);
 
         // Collisions
         this.physics.add.collider(this.ball, this.paddleLeft, this.hitPaddle as unknown as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this);
@@ -236,12 +246,21 @@ class GameScene extends Phaser.Scene {
             ball.setVelocityY(10 * (ball.y - paddle.y));
         }
 
-        // Increase speed slightly
+        // Change color based on which paddle hit it
+        if (paddle === this.paddleLeft) {
+            ball.setTint(0x00ff00); // Green
+        } else if (paddle === this.paddleRight) {
+            ball.setTint(0x800080); // Purple
+        }
+
+        // Maintain constant speed
         const currentVel = (ball.body as Phaser.Physics.Arcade.Body).velocity;
-        ball.setVelocity(currentVel.x * 1.05, currentVel.y * 1.05);
+        const vec = new Phaser.Math.Vector2(currentVel.x, currentVel.y).normalize().scale(this.initialBallSpeed);
+        ball.setVelocity(vec.x, vec.y);
     }
 
     resetBall() {
+        this.ball.clearTint(); // Reset color
         this.ball.setPosition(this.scale.width / 2, this.scale.height / 2);
         const angle = Phaser.Math.Between(-45, 45);
         const direction = Math.random() < 0.5 ? 1 : -1;

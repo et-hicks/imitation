@@ -31,6 +31,12 @@ export default function Home() {
       icon: "🧪",
       href: "/sevodal",
     },
+    {
+      title: "Pong",
+      description: "Classic arcade game built with Phaser",
+      icon: "🏓",
+      href: "/pong",
+    },
   ];
 
   return (
