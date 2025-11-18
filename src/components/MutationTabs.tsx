@@ -9,9 +9,10 @@ const STICK_STYLE: Record<string, unknown> = {
 
 const TABS = [
   {
-    key: 's63e',
-    label: 'S63E',
+    key: 'G68E',
+    label: 'G68E',
     summary: 'Serine → Glutamic Acid',
+    descriptor: 'mutation in the MHL1 gene contributes to Lynch syndrome by substituting a nonpolar amino acid with a negatively charged glutamate, which likely disrupts protein stability and impairs its normal function.  In this mutation, valine (V), a nonpolar amino acid, is replaced by glutamic acid (E) at position 68',
     reference: {
       name: 'Serine (Reference)',
       modelUrl: 'https://files.rcsb.org/ligands/download/SER_ideal.sdf',
@@ -25,6 +26,7 @@ const TABS = [
     key: 'v147g',
     label: 'V147G',
     summary: 'Valine → Glutamine',
+    descriptor: 'Polar glutamine replaces hydrophobic valine, altering solvent exposure and helix packing.',
     reference: {
       name: 'Valine (Reference)',
       modelUrl: 'https://files.rcsb.org/ligands/download/VAL_ideal.sdf',
@@ -38,6 +40,7 @@ const TABS = [
     key: 'l328m',
     label: 'L328M',
     summary: 'Lysine → Methionine',
+    descriptor: 'Neutral methionine removes the lysine charge used for DNA backbone coordination.',
     reference: {
       name: 'Lysine (Reference)',
       modelUrl: 'https://files.rcsb.org/ligands/download/LYS_ideal.sdf',
@@ -50,7 +53,7 @@ const TABS = [
 ] as const;
 
 export function MutationTabs() {
-  const [activeKey, setActiveKey] = useState<(typeof TABS)[number]['key']>('s63e');
+  const [activeKey, setActiveKey] = useState<(typeof TABS)[number]['key']>(TABS[0].key);
   const activeTab = useMemo(() => TABS.find(tab => tab.key === activeKey) ?? TABS[0], [activeKey]);
 
   return (
@@ -86,6 +89,10 @@ export function MutationTabs() {
           );
         })}
       </div>
+
+      <p className="text-sm text-slate-400">
+        {activeTab.descriptor}
+      </p>
 
       <div role="tabpanel" aria-label={`${activeTab.label} mutation`} className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-3">

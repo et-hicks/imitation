@@ -20,3 +20,6 @@ Mubassera Subah, Ethan Hicks, Thalia Matos
 4 ethanhicks.com/sevodal
 🟩🟩◻️🟨
 🟩🟩🟩🟩
+
+
+mutation in the MHL1 gene contributes to Lynch syndrome by substituting a nonpolar amino acid with a negatively charged glutamate, which likely disrupts protein stability and impairs its normal function.  In this mutation, valine (V), a nonpolar amino acid, is replaced by glutamic acid (E) at position 68
