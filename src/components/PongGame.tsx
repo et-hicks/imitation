@@ -164,6 +164,7 @@ class GameScene extends Phaser.Scene {
     private socket: WebSocket | null = null;
     private isPaused = false;
     private pauseText!: Phaser.GameObjects.Text;
+    private lastScoreEvent: 'no_score' | 'purple_scored' | 'green_scored' = 'no_score';
 
     constructor() {
         super({ key: 'GameScene' });
@@ -174,6 +175,7 @@ class GameScene extends Phaser.Scene {
         this.socket = data.socket;
         this.scoreLeft = 0;
         this.scoreRight = 0;
+        this.lastScoreEvent = 'no_score';
     }
 
     preload() {
@@ -340,10 +342,12 @@ class GameScene extends Phaser.Scene {
         if (this.ball.x < 0) {
             this.scoreRight++;
             this.scoreRightText.setText(this.scoreRight.toString());
+            this.lastScoreEvent = 'purple_scored';
             this.resetBall();
         } else if (this.ball.x > this.scale.width) {
             this.scoreLeft++;
             this.scoreLeftText.setText(this.scoreLeft.toString());
+            this.lastScoreEvent = 'green_scored';
             this.resetBall();
         }
 
@@ -426,8 +430,18 @@ class GameScene extends Phaser.Scene {
         placePaddle(this.paddleLeft);
         placePaddle(this.paddleRight);
 
-        // Send via WebSocket
-        this.socket.send(grid.map(row => row.join(' ')).join('\n'));
+        // Send via WebSocket with score and scored status metadata
+        const payload = {
+            matrix: grid,
+            score: {
+                green: this.scoreLeft,
+                purple: this.scoreRight,
+            },
+            scored: this.lastScoreEvent,
+        };
+
+        this.socket.send(JSON.stringify(payload));
+        this.lastScoreEvent = 'no_score';
     }
 
     aiControl(paddle: Phaser.Physics.Arcade.Image) {
