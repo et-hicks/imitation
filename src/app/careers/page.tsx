@@ -9,7 +9,31 @@ export default function CareersPage() {
     <main className="min-h-[calc(100vh-56px)] bg-black">
       <div className="mx-auto max-w-4xl px-6 py-10">
         <h1 className="mb-8 text-4xl font-semibold text-white">Ethan Hicks</h1>
-        <p className="mb-2 text-gray-300">etmhicks@gmail.com • (530) 616-5238</p>
+        {/* <p className="mb-4 text-gray-300">etmhicks@gmail.com</p> */}
+        <div className="mb-10 flex flex-wrap gap-6 text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+          <a
+            href="https://github.com/et-hicks"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 transition hover:text-slate-200"
+          >
+            GitHub
+            <span className="flex items-center gap-1 text-xs tracking-[0.2em] text-slate-500">
+              <span aria-hidden>↗</span>
+            </span>
+          </a>
+          <a
+            href="https://www.linkedin.com/in/ethan-m-hicks/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 transition hover:text-slate-200"
+          >
+            LinkedIn
+            <span className="flex items-center gap-1 text-xs tracking-[0.2em] text-slate-500">
+              <span aria-hidden>↗</span>
+            </span>
+          </a>
+        </div>
         
         {/* Career Summary */}
         <div className="mb-10">
@@ -111,5 +135,4 @@ export default function CareersPage() {
     </main>
   );
 }
-
 
