@@ -26,7 +26,7 @@ export default function PongGame() {
                         debug: false,
                     },
                 },
-                scene: [StartScene, GameScene],
+                scene: [StartScene, ConnectingScene, GameScene],
             };
 
             gameInstance.current = new Phaser.Game(config);
@@ -69,7 +69,7 @@ class StartScene extends Phaser.Scene {
                 .setInteractive({ useHandCursor: true })
                 .on('pointerover', () => button.setStyle({ color: '#00ff00' }))
                 .on('pointerout', () => button.setStyle({ color: '#ffffff' }))
-                .on('pointerdown', () => this.scene.start('GameScene', { mode }));
+                .on('pointerdown', () => this.scene.start('ConnectingScene', { mode }));
         };
 
         createButton(height / 2, '2 Player (WASD vs Arrows)', '2player');
@@ -78,9 +78,72 @@ class StartScene extends Phaser.Scene {
 
         // Keyboard shortcuts
         if (this.input.keyboard) {
-            this.input.keyboard.on('keydown-ONE', () => this.scene.start('GameScene', { mode: '1player' }));
-            this.input.keyboard.on('keydown-TWO', () => this.scene.start('GameScene', { mode: '2player' }));
-            this.input.keyboard.on('keydown-A', () => this.scene.start('GameScene', { mode: 'ai_vs_ai' }));
+            this.input.keyboard.on('keydown-ONE', () => this.scene.start('ConnectingScene', { mode: '1player' }));
+            this.input.keyboard.on('keydown-TWO', () => this.scene.start('ConnectingScene', { mode: '2player' }));
+            this.input.keyboard.on('keydown-A', () => this.scene.start('ConnectingScene', { mode: 'ai_vs_ai' }));
+        }
+    }
+}
+
+class ConnectingScene extends Phaser.Scene {
+    private mode!: string;
+
+    constructor() {
+        super({ key: 'ConnectingScene' });
+    }
+
+    init(data: { mode: string }) {
+        this.mode = data.mode;
+    }
+
+    create() {
+        const { width, height } = this.scale;
+
+        this.add.text(width / 2, height / 2, 'Connecting...', {
+            fontSize: '60px',
+            color: '#ffffff',
+            fontFamily: 'Arial',
+        }).setOrigin(0.5);
+
+        let socketOpen = false;
+        let timerDone = false;
+        let socket: WebSocket | null = null;
+
+        const checkReady = () => {
+            if (timerDone && socketOpen) {
+                this.scene.start('GameScene', { mode: this.mode, socket });
+            }
+        };
+
+        // Start 2s timer
+        this.time.delayedCall(2000, () => {
+            timerDone = true;
+            checkReady();
+        });
+
+        // Connect WebSocket
+        try {
+            socket = new WebSocket('ws://localhost:8000/ws/game');
+
+            socket.onopen = () => {
+                console.log('WebSocket connected');
+                socketOpen = true;
+                checkReady();
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                // Proceed anyway after timeout if connection fails, or handle error?
+                // For now, let's assume we proceed without socket if it fails, or just hang (as per user warning)
+                // But to be safe and playable, let's treat error as "open" but null socket effectively
+                socketOpen = true;
+                socket = null;
+                checkReady();
+            };
+        } catch (e) {
+            console.error('WebSocket connection failed immediately:', e);
+            socketOpen = true;
+            checkReady();
         }
     }
 }
@@ -98,13 +161,15 @@ class GameScene extends Phaser.Scene {
     private mode!: string;
     private paddleSpeed = 600;
     private initialBallSpeed = 600;
+    private socket: WebSocket | null = null;
 
     constructor() {
         super({ key: 'GameScene' });
     }
 
-    init(data: { mode: string }) {
+    init(data: { mode: string, socket: WebSocket | null }) {
         this.mode = data.mode;
+        this.socket = data.socket;
         this.scoreLeft = 0;
         this.scoreRight = 0;
     }
@@ -176,7 +241,12 @@ class GameScene extends Phaser.Scene {
         // Back button
         this.add.text(20, 20, 'Back to Menu', { color: '#ffffff' })
             .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => this.scene.start('StartScene'));
+            .on('pointerdown', () => {
+                if (this.socket) {
+                    this.socket.close();
+                }
+                this.scene.start('StartScene');
+            });
     }
 
     update() {
@@ -221,7 +291,7 @@ class GameScene extends Phaser.Scene {
             this.resetBall();
         }
 
-        this.printGameState();
+        this.sendGameState();
     }
 
     printGameState() {
@@ -261,6 +331,47 @@ class GameScene extends Phaser.Scene {
 
         // Print
         console.log(grid.map(row => row.join(' ')).join('\n'));
+    }
+
+    sendGameState() {
+        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
+
+        const rows = 16; // 800 / 50
+        const cols = 24; // 1200 / 50
+        const cellSize = 50;
+
+        // Initialize grid with '0'
+        const grid: string[][] = Array(rows).fill(null).map(() => Array(cols).fill('0'));
+
+        // Helper to safely set grid value
+        const setGrid = (r: number, c: number, val: string) => {
+            if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                grid[r][c] = val;
+            }
+        };
+
+        // Place Ball
+        const ballR = Math.floor(this.ball.y / cellSize);
+        const ballC = Math.floor(this.ball.x / cellSize);
+        setGrid(ballR, ballC, '.');
+
+        // Place Paddles (height 100 = 2 cells)
+        const placePaddle = (paddle: Phaser.Physics.Arcade.Image) => {
+            const paddleC = Math.floor(paddle.x / cellSize);
+            // Paddle origin is 0.5, so it spans y-50 to y+50
+            const topR = Math.floor((paddle.y - 50) / cellSize);
+            const bottomR = Math.floor((paddle.y + 49) / cellSize); // +49 to stay within the cell if exactly on boundary
+
+            for (let r = topR; r <= bottomR; r++) {
+                setGrid(r, paddleC, '|');
+            }
+        };
+
+        placePaddle(this.paddleLeft);
+        placePaddle(this.paddleRight);
+
+        // Send via WebSocket
+        this.socket.send(grid.map(row => row.join(' ')).join('\n'));
     }
 
     aiControl(paddle: Phaser.Physics.Arcade.Image) {
