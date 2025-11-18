@@ -220,6 +220,47 @@ class GameScene extends Phaser.Scene {
             this.scoreLeftText.setText(this.scoreLeft.toString());
             this.resetBall();
         }
+
+        this.printGameState();
+    }
+
+    printGameState() {
+        const rows = 16; // 800 / 50
+        const cols = 24; // 1200 / 50
+        const cellSize = 50;
+
+        // Initialize grid with '0'
+        const grid: string[][] = Array(rows).fill(null).map(() => Array(cols).fill('0'));
+
+        // Helper to safely set grid value
+        const setGrid = (r: number, c: number, val: string) => {
+            if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                grid[r][c] = val;
+            }
+        };
+
+        // Place Ball
+        const ballR = Math.floor(this.ball.y / cellSize);
+        const ballC = Math.floor(this.ball.x / cellSize);
+        setGrid(ballR, ballC, '.');
+
+        // Place Paddles (height 100 = 2 cells)
+        const placePaddle = (paddle: Phaser.Physics.Arcade.Image) => {
+            const paddleC = Math.floor(paddle.x / cellSize);
+            // Paddle origin is 0.5, so it spans y-50 to y+50
+            const topR = Math.floor((paddle.y - 50) / cellSize);
+            const bottomR = Math.floor((paddle.y + 49) / cellSize); // +49 to stay within the cell if exactly on boundary
+
+            for (let r = topR; r <= bottomR; r++) {
+                setGrid(r, paddleC, '|');
+            }
+        };
+
+        placePaddle(this.paddleLeft);
+        placePaddle(this.paddleRight);
+
+        // Print
+        console.log(grid.map(row => row.join(' ')).join('\n'));
     }
 
     aiControl(paddle: Phaser.Physics.Arcade.Image) {
