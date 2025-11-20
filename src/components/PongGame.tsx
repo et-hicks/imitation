@@ -175,6 +175,7 @@ class GameScene extends Phaser.Scene {
     private pauseText!: Phaser.GameObjects.Text;
     private pauseOptionsText!: Phaser.GameObjects.Text;
     private lastScoreEvent: 'no_score' | 'purple_scored' | 'green_scored' = 'no_score';
+    private ballTouchedBy: 'green' | 'purple' | null = null;
     private aiPaddleCommands: { left: -1 | 0 | 1; right: -1 | 0 | 1 } = { left: 0, right: 0 };
 
     constructor() {
@@ -187,6 +188,7 @@ class GameScene extends Phaser.Scene {
         this.scoreLeft = 0;
         this.scoreRight = 0;
         this.lastScoreEvent = 'no_score';
+        this.ballTouchedBy = null;
         this.aiPaddleCommands = { left: 0, right: 0 };
         this.registerSocketMessageHandler();
     }
@@ -445,14 +447,18 @@ class GameScene extends Phaser.Scene {
 
         // Scoring
         if (this.ball.x < 0) {
-            this.scoreRight++;
-            this.scoreRightText.setText(this.scoreRight.toString());
-            this.lastScoreEvent = 'purple_scored';
+            if (this.hasBallBeenTouched()) {
+                this.scoreRight++;
+                this.scoreRightText.setText(this.scoreRight.toString());
+                this.lastScoreEvent = 'purple_scored';
+            }
             this.resetBall();
         } else if (this.ball.x > this.scale.width) {
-            this.scoreLeft++;
-            this.scoreLeftText.setText(this.scoreLeft.toString());
-            this.lastScoreEvent = 'green_scored';
+            if (this.hasBallBeenTouched()) {
+                this.scoreLeft++;
+                this.scoreLeftText.setText(this.scoreLeft.toString());
+                this.lastScoreEvent = 'green_scored';
+            }
             this.resetBall();
         }
 
@@ -577,8 +583,10 @@ class GameScene extends Phaser.Scene {
         // Change color based on which paddle hit it
         if (paddle === this.paddleLeft) {
             ball.setTint(0x00ff00); // Green
+            this.ballTouchedBy = 'green';
         } else if (paddle === this.paddleRight) {
             ball.setTint(0x800080); // Purple
+            this.ballTouchedBy = 'purple';
         }
 
         // Maintain constant speed
@@ -602,8 +610,13 @@ class GameScene extends Phaser.Scene {
         }
     }
 
+    private hasBallBeenTouched(): boolean {
+        return this.ballTouchedBy === 'green' || this.ballTouchedBy === 'purple';
+    }
+
     resetBall() {
         this.ball.clearTint(); // Reset color
+        this.ballTouchedBy = null;
         this.ball.setPosition(this.scale.width / 2, this.scale.height / 2);
         const angle = Phaser.Math.Between(-45, 45);
         const direction = Math.random() < 0.5 ? 1 : -1;
