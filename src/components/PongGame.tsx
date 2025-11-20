@@ -6,7 +6,7 @@ import * as Phaser from 'phaser';
 const DEBUG_MODE = true;
 type AllowedDirection = 'up' | 'down' | 'neutral';
 type CommandPayload = {
-    type: 'paddle_commands';
+    type: 'model_actions';
     green: AllowedDirection;
     purple: AllowedDirection;
 };
@@ -25,7 +25,7 @@ export default function PongGame() {
                 parent: gameContainer.current,
                 backgroundColor: '#000000',
                 fps: {
-                    target: 15,
+                    target: 10,
                     forceSetTimeOut: true
                 },
                 physics: {
@@ -361,31 +361,50 @@ class GameScene extends Phaser.Scene {
         if (!this.socket) return;
 
         this.socket.onmessage = (event) => {
-            if (this.mode !== 'ai_vs_ai' || typeof event.data !== 'string') {
+            if (this.mode !== 'ai_vs_ai') {
                 return;
             }
 
-            try {
-                const parsed = JSON.parse(event.data);
-                if (!this.isValidCommandPayload(parsed)) {
-                    return;
-                }
-
-                this.aiPaddleCommands = {
-                    left: this.directionToCommand(parsed.green),
-                    right: this.directionToCommand(parsed.purple),
-                };
-            } catch (error) {
-                console.error('Failed to parse AI control payload', error);
+            if (typeof event.data === 'string') {
+                this.consumeCommandPayload(event.data);
+            } else if (event.data instanceof Blob) {
+                event.data.text()
+                    .then(text => this.consumeCommandPayload(text))
+                    .catch(error => console.error('Failed to read AI control payload', error));
             }
         };
+    }
+
+    private consumeCommandPayload(rawPayload: string) {
+        if (true) {
+            console.log('WS Command Payload:', rawPayload);
+        }
+
+        try {
+            const parsed = JSON.parse(rawPayload);
+            if (!this.isValidCommandPayload(parsed)) {
+                return;
+            }
+
+            const commands = {
+                left: this.directionToCommand(parsed.green),
+                right: this.directionToCommand(parsed.purple),
+            };
+
+            this.aiPaddleCommands = commands;
+            if (!this.isPaused && this.mode === 'ai_vs_ai' && this.paddleLeft && this.paddleRight) {
+                this.applyServerCommands(commands);
+            }
+        } catch (error) {
+            console.error('Failed to parse AI control payload', error);
+        }
     }
 
     private isValidCommandPayload(data: unknown): data is CommandPayload {
         if (!data || typeof data !== 'object') return false;
 
         const payload = data as Partial<CommandPayload>;
-        return payload.type === 'paddle_commands'
+        return payload.type === 'model_actions'
             && this.isAllowedDirection(payload.green)
             && this.isAllowedDirection(payload.purple);
     }
@@ -411,38 +430,38 @@ class GameScene extends Phaser.Scene {
     update() {
         if (this.isPaused) return;
 
-        // Left Paddle Control
         if (this.mode === 'ai_vs_ai') {
-            this.applyServerCommand(this.paddleLeft, this.aiPaddleCommands.left);
-        } else if (this.mode === '2player' || this.mode === '1player') {
-            // Player control
-            if (this.keys.w.isDown) {
-                this.paddleLeft.setVelocityY(-this.paddleSpeed);
-            } else if (this.keys.s.isDown) {
-                this.paddleLeft.setVelocityY(this.paddleSpeed);
-            } else {
-                this.paddleLeft.setVelocityY(0);
-            }
+            this.applyServerCommands(this.aiPaddleCommands);
         } else {
-            // AI control for Left
-            this.aiControl(this.paddleLeft);
-        }
+            // Left Paddle Control
+            if (this.mode === '2player' || this.mode === '1player') {
+                // Player control
+                if (this.keys.w.isDown) {
+                    this.paddleLeft.setVelocityY(-this.paddleSpeed);
+                } else if (this.keys.s.isDown) {
+                    this.paddleLeft.setVelocityY(this.paddleSpeed);
+                } else {
+                    this.paddleLeft.setVelocityY(0);
+                }
+            } else {
+                // AI control for Left
+                this.aiControl(this.paddleLeft);
+            }
 
-        // Right Paddle Control
-        if (this.mode === 'ai_vs_ai') {
-            this.applyServerCommand(this.paddleRight, this.aiPaddleCommands.right);
-        } else if (this.mode === '2player') {
-            // Player control
-            if (this.cursors.up.isDown) {
-                this.paddleRight.setVelocityY(-this.paddleSpeed);
-            } else if (this.cursors.down.isDown) {
-                this.paddleRight.setVelocityY(this.paddleSpeed);
+            // Right Paddle Control
+            if (this.mode === '2player') {
+                // Player control
+                if (this.cursors.up.isDown) {
+                    this.paddleRight.setVelocityY(-this.paddleSpeed);
+                } else if (this.cursors.down.isDown) {
+                    this.paddleRight.setVelocityY(this.paddleSpeed);
+                } else {
+                    this.paddleRight.setVelocityY(0);
+                }
             } else {
-                this.paddleRight.setVelocityY(0);
+                // AI control for Right
+                this.aiControl(this.paddleRight);
             }
-        } else {
-            // AI control for Right
-            this.aiControl(this.paddleRight);
         }
 
         // Scoring
@@ -593,6 +612,15 @@ class GameScene extends Phaser.Scene {
         const currentVel = (ball.body as Phaser.Physics.Arcade.Body).velocity;
         const vec = new Phaser.Math.Vector2(currentVel.x, currentVel.y).normalize().scale(this.initialBallSpeed);
         ball.setVelocity(vec.x, vec.y);
+    }
+
+    private applyServerCommands(commands: { left: -1 | 0 | 1; right: -1 | 0 | 1 }) {
+        if (!this.paddleLeft || !this.paddleRight) {
+            return;
+        }
+
+        this.applyServerCommand(this.paddleLeft, commands.left);
+        this.applyServerCommand(this.paddleRight, commands.right);
     }
 
     private applyServerCommand(paddle: Phaser.Physics.Arcade.Image, command: -1 | 0 | 1) {
