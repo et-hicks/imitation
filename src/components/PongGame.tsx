@@ -3,6 +3,15 @@
 import { useEffect, useRef } from 'react';
 import * as Phaser from 'phaser';
 
+const DEBUG_MODE = true;
+type AllowedDirection = 'up' | 'down' | 'neutral';
+type CommandPayload = {
+    type: 'paddle_commands';
+    green: AllowedDirection;
+    purple: AllowedDirection;
+};
+const ALLOWED_DIRECTIONS = new Set<AllowedDirection>(['up', 'down', 'neutral']);
+
 export default function PongGame() {
     const gameContainer = useRef<HTMLDivElement>(null);
     const gameInstance = useRef<Phaser.Game | null>(null);
@@ -16,7 +25,7 @@ export default function PongGame() {
                 parent: gameContainer.current,
                 backgroundColor: '#000000',
                 fps: {
-                    target: 30,
+                    target: 15,
                     forceSetTimeOut: true
                 },
                 physics: {
@@ -164,7 +173,9 @@ class GameScene extends Phaser.Scene {
     private socket: WebSocket | null = null;
     private isPaused = false;
     private pauseText!: Phaser.GameObjects.Text;
+    private pauseOptionsText!: Phaser.GameObjects.Text;
     private lastScoreEvent: 'no_score' | 'purple_scored' | 'green_scored' = 'no_score';
+    private aiPaddleCommands: { left: -1 | 0 | 1; right: -1 | 0 | 1 } = { left: 0, right: 0 };
 
     constructor() {
         super({ key: 'GameScene' });
@@ -176,6 +187,8 @@ class GameScene extends Phaser.Scene {
         this.scoreLeft = 0;
         this.scoreRight = 0;
         this.lastScoreEvent = 'no_score';
+        this.aiPaddleCommands = { left: 0, right: 0 };
+        this.registerSocketMessageHandler();
     }
 
     preload() {
@@ -258,50 +271,138 @@ class GameScene extends Phaser.Scene {
             color: '#ffffff',
             fontFamily: 'Arial',
         }).setOrigin(0.5).setVisible(false);
+        this.pauseOptionsText = this.add.text(width / 2, height / 2 + 120, '1 - Resume\n2 - Exit to Menu', {
+            fontSize: '32px',
+            color: '#ffffff',
+            fontFamily: 'Arial',
+            align: 'center',
+        }).setOrigin(0.5).setVisible(false);
 
         // Pause Input
         if (this.input.keyboard) {
             this.input.keyboard.on('keydown-Q', () => this.togglePause());
             this.input.keyboard.on('keydown-ESC', () => this.togglePause());
+            this.input.keyboard.on('keydown-ONE', () => this.handlePauseSelection(1));
+            this.input.keyboard.on('keydown-NUMPAD_ONE', () => this.handlePauseSelection(1));
+            this.input.keyboard.on('keydown-TWO', () => this.handlePauseSelection(2));
+            this.input.keyboard.on('keydown-NUMPAD_TWO', () => this.handlePauseSelection(2));
         }
     }
 
     togglePause() {
-        if (this.isPaused) {
-            // Unpause
-            this.pauseText.setText('Reconnecting...');
-            this.reconnectSocket();
-        } else {
-            // Pause
-            this.isPaused = true;
-            this.physics.pause();
-            if (this.socket) {
-                this.socket.close();
-                this.socket = null;
-            }
-            this.pauseText.setText('PAUSED').setVisible(true);
-        }
+        if (this.isPaused) return;
+
+        this.isPaused = true;
+        this.physics.pause();
+        this.pauseText.setText('PAUSED').setVisible(true);
+        this.pauseOptionsText.setVisible(true);
     }
 
     reconnectSocket() {
         try {
             this.socket = new WebSocket('ws://localhost:8000/ws/game');
+            this.registerSocketMessageHandler();
             this.socket.onopen = () => {
                 console.log('WebSocket reconnected');
                 this.isPaused = false;
                 this.physics.resume();
                 this.pauseText.setVisible(false);
+                this.pauseOptionsText.setVisible(false);
             };
             this.socket.onerror = (e) => {
                 console.error("Reconnect failed", e);
-                // If reconnect fails, we could either stay paused or let them play offline.
-                // For now, let's assume we want to enforce connection or just let them wait.
-                // But to avoid locking the game if server is down, let's resume offline after a short delay or error?
-                // User said "upon unpausing ... should reconnect". Implicitly, wait for reconnect.
-                // I'll leave it hanging on "Reconnecting..." if it fails, as that's safer than desyncing state.
+                this.pauseText.setText('Reconnect failed. Press 1 to retry or 2 to exit.').setVisible(true);
+                this.pauseOptionsText.setVisible(true);
             };
         } catch (e) {
             console.error(e);
+        }
+    }
+
+    private handlePauseSelection(option: 1 | 2) {
+        if (!this.isPaused || !this.pauseOptionsText.visible) return;
+
+        if (option === 1) {
+            this.resumeGameFromPause();
+        } else {
+            this.exitToMenuFromPause();
+        }
+    }
+
+    private resumeGameFromPause() {
+        this.pauseOptionsText.setVisible(false);
+        this.pauseText.setText('Reconnecting...').setVisible(true);
+
+        if (this.socket) {
+            this.socket.close();
+            this.socket = null;
+        }
+
+        this.reconnectSocket();
+    }
+
+    private exitToMenuFromPause() {
+        this.pauseOptionsText.setVisible(false);
+        this.pauseText.setVisible(false);
+
+        if (this.socket) {
+            this.socket.close();
+            this.socket = null;
+        }
+
+        this.isPaused = false;
+        this.physics.resume();
+        this.scene.start('StartScene');
+    }
+
+    private registerSocketMessageHandler() {
+        if (!this.socket) return;
+
+        this.socket.onmessage = (event) => {
+            if (this.mode !== 'ai_vs_ai' || typeof event.data !== 'string') {
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(event.data);
+                if (!this.isValidCommandPayload(parsed)) {
+                    return;
+                }
+
+                this.aiPaddleCommands = {
+                    left: this.directionToCommand(parsed.green),
+                    right: this.directionToCommand(parsed.purple),
+                };
+            } catch (error) {
+                console.error('Failed to parse AI control payload', error);
+            }
+        };
+    }
+
+    private isValidCommandPayload(data: unknown): data is CommandPayload {
+        if (!data || typeof data !== 'object') return false;
+
+        const payload = data as Partial<CommandPayload>;
+        return payload.type === 'paddle_commands'
+            && this.isAllowedDirection(payload.green)
+            && this.isAllowedDirection(payload.purple);
+    }
+
+    private isAllowedDirection(value: unknown): value is AllowedDirection {
+        if (typeof value !== 'string') return false;
+        return ALLOWED_DIRECTIONS.has(value.toLowerCase() as AllowedDirection);
+    }
+
+    private directionToCommand(direction: AllowedDirection): -1 | 0 | 1 {
+        const normalized = direction.toLowerCase() as AllowedDirection;
+        switch (normalized) {
+            case 'up':
+                return -1;
+            case 'down':
+                return 1;
+            case 'neutral':
+            default:
+                return 0;
         }
     }
 
@@ -309,7 +410,9 @@ class GameScene extends Phaser.Scene {
         if (this.isPaused) return;
 
         // Left Paddle Control
-        if (this.mode === '2player' || this.mode === '1player') {
+        if (this.mode === 'ai_vs_ai') {
+            this.applyServerCommand(this.paddleLeft, this.aiPaddleCommands.left);
+        } else if (this.mode === '2player' || this.mode === '1player') {
             // Player control
             if (this.keys.w.isDown) {
                 this.paddleLeft.setVelocityY(-this.paddleSpeed);
@@ -324,7 +427,9 @@ class GameScene extends Phaser.Scene {
         }
 
         // Right Paddle Control
-        if (this.mode === '2player') {
+        if (this.mode === 'ai_vs_ai') {
+            this.applyServerCommand(this.paddleRight, this.aiPaddleCommands.right);
+        } else if (this.mode === '2player') {
             // Player control
             if (this.cursors.up.isDown) {
                 this.paddleRight.setVelocityY(-this.paddleSpeed);
@@ -438,6 +543,7 @@ class GameScene extends Phaser.Scene {
                 purple: this.scoreRight,
             },
             scored: this.lastScoreEvent,
+            debug: DEBUG_MODE,
         };
 
         this.socket.send(JSON.stringify(payload));
@@ -479,6 +585,21 @@ class GameScene extends Phaser.Scene {
         const currentVel = (ball.body as Phaser.Physics.Arcade.Body).velocity;
         const vec = new Phaser.Math.Vector2(currentVel.x, currentVel.y).normalize().scale(this.initialBallSpeed);
         ball.setVelocity(vec.x, vec.y);
+    }
+
+    private applyServerCommand(paddle: Phaser.Physics.Arcade.Image, command: -1 | 0 | 1) {
+        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+            this.aiControl(paddle);
+            return;
+        }
+
+        if (command === -1) {
+            paddle.setVelocityY(-this.paddleSpeed);
+        } else if (command === 1) {
+            paddle.setVelocityY(this.paddleSpeed);
+        } else {
+            paddle.setVelocityY(0);
+        }
     }
 
     resetBall() {
