@@ -11,6 +11,7 @@ const wishlistItems = [
   "keyboard and mouse",
   "sturdy flannel shirts",
   "masculin jewelry",
+  "big portable charger (7000mAh+)",
 ];
 
 const aiSuggestions = [
