@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 const wishlistItems = [
   "stainless steel pan (non-non-stick)",
   "raw denim pants (this is expensive)",
-  "ipad pro 13 in case (i’m buying myself one for getting a new job)",
+  "<s>ipad pro 13 in case (i’m buying myself one for getting a new job)</s>",
   "keyboard and mouse",
   "sturdy flannel shirts",
   "masculin jewelry",
@@ -56,7 +56,7 @@ export default function ChristmasPage() {
                 <span aria-hidden className="mt-1 text-sky-300">
                   •
                 </span>
-                <span>{item}</span>
+                <span dangerouslySetInnerHTML={{ __html: item }} />
               </li>
             ))}
           </ul>
