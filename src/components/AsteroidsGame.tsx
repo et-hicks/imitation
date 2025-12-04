@@ -142,36 +142,56 @@ const AsteroidsGame = () => {
                 }
             }
 
-            spawnAsteroid() {
-                const x = Phaser.Math.Between(0, 800);
-                const y = Phaser.Math.Between(0, 600);
+            spawnAsteroid(x?: number, y?: number, sizeType?: 'large' | 'medium' | 'small') {
+                // If x and y are not provided, pick random location
+                const spawnX = x ?? Phaser.Math.Between(0, 800);
+                const spawnY = y ?? Phaser.Math.Between(0, 600);
 
-                // Don't spawn too close to ship
-                if (Phaser.Math.Distance.Between(x, y, this.ship.x, this.ship.y) < 100) {
+                // Don't spawn too close to ship if it's a random spawn
+                if (x === undefined && y === undefined && Phaser.Math.Distance.Between(spawnX, spawnY, this.ship.x, this.ship.y) < 100) {
                     return;
                 }
 
                 const asteroid = this.add.graphics();
 
                 // Determine size and color
-                const rand = Math.random();
                 let radius;
                 let color;
+                let type = sizeType;
 
-                if (rand < 0.2) {
-                    // Small (20%) - Red
-                    radius = Phaser.Math.Between(10, 20);
-                    color = 0xff0000;
-                } else if (rand < 0.5) {
-                    // Medium (30%) - Green
-                    radius = Phaser.Math.Between(25, 40);
-                    color = 0x00ff00;
-                } else {
-                    // Large (50%) - White
-                    radius = Phaser.Math.Between(50, 70);
-                    color = 0xffffff;
+                if (!type) {
+                    const rand = Math.random();
+                    if (rand < 0.2) {
+                        type = 'small';
+                    } else if (rand < 0.5) {
+                        type = 'medium';
+                    } else {
+                        type = 'large';
+                    }
                 }
 
+                let speedMultiplier = 1;
+
+                switch (type) {
+                    case 'small':
+                        radius = Phaser.Math.Between(10, 20);
+                        color = 0xff0000;
+                        speedMultiplier = 1.3;
+                        break;
+                    case 'medium':
+                        radius = Phaser.Math.Between(25, 40);
+                        color = 0x00ff00;
+                        speedMultiplier = 1.1;
+                        break;
+                    case 'large':
+                    default:
+                        radius = Phaser.Math.Between(50, 70);
+                        color = 0xffffff;
+                        speedMultiplier = 1.0;
+                        break;
+                }
+
+                asteroid.setData('sizeType', type);
                 asteroid.lineStyle(2, color);
 
                 // Random polygon shape
@@ -185,13 +205,20 @@ const AsteroidsGame = () => {
                 points.push(points[0]); // Close loop
 
                 asteroid.strokePoints(points);
-                asteroid.x = x;
-                asteroid.y = y;
+                asteroid.x = spawnX;
+                asteroid.y = spawnY;
 
                 this.asteroids.add(asteroid);
                 this.physics.world.enable(asteroid);
                 const body = asteroid.body as Phaser.Physics.Arcade.Body;
-                body.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
+
+                const baseSpeed = Phaser.Math.Between(50, 100);
+                const speed = baseSpeed * speedMultiplier;
+
+                // Random velocity vector with magnitude = speed
+                const angle = Math.random() * Math.PI * 2;
+                body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+
                 body.setCircle(radius); // Approximate collider
             }
 
@@ -199,6 +226,9 @@ const AsteroidsGame = () => {
             bulletHitAsteroid(bullet: any, asteroid: any) {
                 const b = bullet as Phaser.GameObjects.Graphics;
                 const a = asteroid as Phaser.GameObjects.Graphics;
+                const sizeType = a.getData('sizeType');
+                const x = a.x;
+                const y = a.y;
 
                 b.setActive(false);
                 b.setVisible(false);
@@ -206,9 +236,17 @@ const AsteroidsGame = () => {
                 this.score += 10;
                 this.scoreText.setText('Score: ' + this.score);
 
-                // Spawn 2 new ones to keep it going
-                if (this.asteroids.countActive() < 10) {
-                    this.spawnAsteroid();
+                // Splitting logic
+                if (sizeType === 'large') {
+                    this.spawnAsteroid(x, y, 'medium');
+                    this.spawnAsteroid(x, y, 'medium');
+                } else if (sizeType === 'medium') {
+                    this.spawnAsteroid(x, y, 'small');
+                    this.spawnAsteroid(x, y, 'small');
+                }
+
+                // Spawn new random asteroids if count gets too low to keep game going
+                if (this.asteroids.countActive() < 5) {
                     this.spawnAsteroid();
                 }
             }
