@@ -1,10 +1,59 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as Phaser from 'phaser';
+
+type LeaderboardEntry = {
+    name: string;
+    score: number;
+};
 
 const AsteroidsGame = () => {
     const gameRef = useRef<Phaser.Game | null>(null);
+    const [playerName, setPlayerName] = useState('');
+    const [showUI, setShowUI] = useState(true);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+    const [lastScore, setLastScore] = useState<number | null>(null);
+
+    // Refs for callbacks to avoid stale closures
+    const playerNameRef = useRef(playerName);
+    playerNameRef.current = playerName;
+
+    const updateLeaderboard = (score: number) => {
+        const entry = { name: playerNameRef.current || 'ANONYMOUS', score };
+        setLeaderboard(prev => {
+            const newBoard = [...prev, entry].sort((a, b) => b.score - a.score).slice(0, 5);
+            localStorage.setItem('asteroids_leaderboard', JSON.stringify(newBoard));
+            return newBoard;
+        });
+    };
+    const updateLeaderboardRef = useRef(updateLeaderboard);
+    updateLeaderboardRef.current = updateLeaderboard;
+
+    const handleGameOver = (score: number) => {
+        setLastScore(score);
+        updateLeaderboardRef.current(score);
+        setShowUI(true);
+    };
+    const handleGameOverRef = useRef(handleGameOver);
+    handleGameOverRef.current = handleGameOver;
+
+    useEffect(() => {
+        const stored = localStorage.getItem('asteroids_leaderboard');
+        if (stored) {
+            setLeaderboard(JSON.parse(stored));
+        }
+    }, []);
+
+    const startGame = () => {
+        if (!gameRef.current) return;
+
+        const scene = gameRef.current.scene.getScene('MainScene');
+        if (scene) {
+            scene.scene.restart({ startImmediately: true });
+            setShowUI(false);
+        }
+    };
 
     useEffect(() => {
         if (gameRef.current) return;
@@ -28,7 +77,7 @@ const AsteroidsGame = () => {
                 // No assets to preload, using graphics
             }
 
-            create() {
+            create(data: { startImmediately?: boolean }) {
                 this.gameOver = false;
                 this.score = 0;
 
@@ -41,6 +90,7 @@ const AsteroidsGame = () => {
 
                 this.physics.world.enable(this.ship);
                 const body = this.ship.body as Phaser.Physics.Arcade.Body;
+                body.setCircle(8, -8, -8); // Smaller circular hitbox
                 body.setDrag(100);
                 body.setAngularDrag(100);
                 body.setMaxVelocity(200);
@@ -72,13 +122,15 @@ const AsteroidsGame = () => {
                 // Collisions
                 this.physics.add.overlap(this.bullets, this.asteroids, this.bulletHitAsteroid, undefined, this);
                 this.physics.add.overlap(this.ship, this.asteroids, this.shipHitAsteroid, undefined, this);
+
+                // Pause if not starting immediately
+                if (!data || !data.startImmediately) {
+                    this.scene.pause();
+                }
             }
 
             update(time: number) {
                 if (this.gameOver) {
-                    if (this.cursors.space.isDown) {
-                        this.scene.restart();
-                    }
                     return;
                 }
 
@@ -142,14 +194,29 @@ const AsteroidsGame = () => {
                 }
             }
 
-            spawnAsteroid(x?: number, y?: number, sizeType?: 'large' | 'medium' | 'small') {
+            spawnAsteroid(x?: number, y?: number, sizeType?: 'large' | 'medium' | 'small', vx?: number, vy?: number) {
                 // If x and y are not provided, pick random location
-                const spawnX = x ?? Phaser.Math.Between(0, 800);
-                const spawnY = y ?? Phaser.Math.Between(0, 600);
+                let spawnX = x;
+                let spawnY = y;
 
-                // Don't spawn too close to ship if it's a random spawn
-                if (x === undefined && y === undefined && Phaser.Math.Distance.Between(spawnX, spawnY, this.ship.x, this.ship.y) < 100) {
-                    return;
+                if (spawnX === undefined || spawnY === undefined) {
+                    // Try up to 10 times to find a safe spawn spot
+                    for (let i = 0; i < 10; i++) {
+                        const testX = Phaser.Math.Between(0, 800);
+                        const testY = Phaser.Math.Between(0, 600);
+
+                        if (Phaser.Math.Distance.Between(testX, testY, this.ship.x, this.ship.y) > 200) {
+                            spawnX = testX;
+                            spawnY = testY;
+                            break;
+                        }
+                    }
+
+                    // If we still didn't find a safe spot, just use the last random one or default
+                    if (spawnX === undefined || spawnY === undefined) {
+                        spawnX = Phaser.Math.Between(0, 800);
+                        spawnY = Phaser.Math.Between(0, 600);
+                    }
                 }
 
                 const asteroid = this.add.graphics();
@@ -212,14 +279,22 @@ const AsteroidsGame = () => {
                 this.physics.world.enable(asteroid);
                 const body = asteroid.body as Phaser.Physics.Arcade.Body;
 
-                const baseSpeed = Phaser.Math.Between(50, 100);
-                const speed = baseSpeed * speedMultiplier;
+                if (vx !== undefined && vy !== undefined) {
+                    // Use provided velocity (already scaled)
+                    body.setVelocity(vx * speedMultiplier, vy * speedMultiplier);
+                } else {
+                    const baseSpeed = Phaser.Math.Between(50, 100);
+                    const speed = baseSpeed * speedMultiplier;
 
-                // Random velocity vector with magnitude = speed
-                const angle = Math.random() * Math.PI * 2;
-                body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+                    // Random velocity vector with magnitude = speed
+                    const angle = Math.random() * Math.PI * 2;
+                    body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+                }
 
-                body.setCircle(radius); // Approximate collider
+                // Reduced hitbox (75% of visual size)
+                const hitboxRadius = radius * 0.75;
+                const offset = radius - hitboxRadius;
+                body.setCircle(hitboxRadius, offset, offset);
             }
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -229,6 +304,8 @@ const AsteroidsGame = () => {
                 const sizeType = a.getData('sizeType');
                 const x = a.x;
                 const y = a.y;
+                const body = a.body as Phaser.Physics.Arcade.Body;
+                const v = body.velocity;
 
                 b.setActive(false);
                 b.setVisible(false);
@@ -237,12 +314,35 @@ const AsteroidsGame = () => {
                 this.scoreText.setText('Score: ' + this.score);
 
                 // Splitting logic
-                if (sizeType === 'large') {
-                    this.spawnAsteroid(x, y, 'medium');
-                    this.spawnAsteroid(x, y, 'medium');
-                } else if (sizeType === 'medium') {
-                    this.spawnAsteroid(x, y, 'small');
-                    this.spawnAsteroid(x, y, 'small');
+                if (sizeType === 'large' || sizeType === 'medium') {
+                    const nextSize = sizeType === 'large' ? 'medium' : 'small';
+
+                    // Calculate orthogonal directions
+                    // Current angle
+                    const angle = Math.atan2(v.y, v.x);
+                    const speed = v.length();
+
+                    // Orthogonal angles (+90 and -90 degrees)
+                    const angle1 = angle + Math.PI / 2;
+                    const angle2 = angle - Math.PI / 2;
+
+                    // Offset distance (radius of current asteroid approx)
+                    const offset = sizeType === 'large' ? 40 : 25;
+
+                    // Calculate new positions
+                    const x1 = x + Math.cos(angle1) * offset;
+                    const y1 = y + Math.sin(angle1) * offset;
+                    const x2 = x + Math.cos(angle2) * offset;
+                    const y2 = y + Math.sin(angle2) * offset;
+
+                    // Calculate new base velocities (will be multiplied by speedMultiplier in spawnAsteroid)
+                    const vx1 = Math.cos(angle1) * speed;
+                    const vy1 = Math.sin(angle1) * speed;
+                    const vx2 = Math.cos(angle2) * speed;
+                    const vy2 = Math.sin(angle2) * speed;
+
+                    this.spawnAsteroid(x1, y1, nextSize, vx1, vy1);
+                    this.spawnAsteroid(x2, y2, nextSize, vx2, vy2);
                 }
 
                 // Spawn new random asteroids if count gets too low to keep game going
@@ -257,8 +357,10 @@ const AsteroidsGame = () => {
                 this.shipGraphics.lineStyle(2, 0xff0000);
                 this.shipGraphics.strokeTriangle(-10, 10, 10, 10, 0, -15);
                 this.gameOver = true;
-                this.add.text(300, 250, 'GAME OVER', { fontSize: '40px', color: '#ff0000' });
-                this.add.text(280, 300, 'Press Space to Restart', { fontSize: '20px', color: '#fff' });
+
+                // Notify React
+                const onGameOver = this.registry.get('onGameOver');
+                if (onGameOver) onGameOver(this.score);
             }
         }
 
@@ -278,15 +380,67 @@ const AsteroidsGame = () => {
             backgroundColor: '#000000'
         };
 
-        gameRef.current = new Phaser.Game(config);
+        const game = new Phaser.Game(config);
+        game.registry.set('onGameOver', (score: number) => handleGameOverRef.current(score));
+        gameRef.current = game;
 
         return () => {
-            gameRef.current?.destroy(true);
+            game.destroy(true);
             gameRef.current = null;
         };
     }, []);
 
-    return <div id="phaser-game" className="flex justify-center items-center h-screen bg-black" />;
+    return (
+        <div className="relative flex justify-center items-center h-screen bg-black">
+            <div id="phaser-game" />
+
+            {showUI && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white z-10">
+                    <h1 className="text-6xl font-bold mb-8 text-white tracking-widest">ASTEROIDS</h1>
+
+                    {lastScore !== null && (
+                        <div className="mb-8 text-center">
+                            <h2 className="text-4xl text-red-500 mb-2">GAME OVER</h2>
+                            <p className="text-2xl">SCORE: {lastScore}</p>
+                        </div>
+                    )}
+
+                    <div className="flex flex-col gap-4 mb-8 w-64">
+                        <input
+                            type="text"
+                            placeholder="ENTER NAME"
+                            className="bg-transparent border-2 border-white p-2 text-center text-xl uppercase focus:outline-none focus:border-green-400"
+                            value={playerName}
+                            onChange={(e) => setPlayerName(e.target.value.toUpperCase())}
+                        />
+                        <button
+                            onClick={startGame}
+                            className="bg-white text-black font-bold py-2 px-4 hover:bg-gray-200 transition-colors text-xl"
+                        >
+                            {lastScore !== null ? 'PLAY AGAIN' : 'START GAME'}
+                        </button>
+                    </div>
+
+                    {leaderboard.length > 0 && (
+                        <div className="mt-8 border-2 border-white p-6 rounded-lg bg-black/50">
+                            <h3 className="text-2xl font-bold mb-4 text-center border-b border-white pb-2">TOP COMMANDERS</h3>
+                            <table className="w-full text-left">
+                                <tbody>
+                                    {leaderboard.map((entry, i) => (
+                                        <tr key={i} className="text-lg">
+                                            <td className="pr-8 py-1 text-gray-400">#{i + 1}</td>
+                                            <td className="pr-8 py-1 font-mono">{entry.name}</td>
+                                            <td className="py-1 text-right font-mono text-green-400">{entry.score}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default AsteroidsGame;
