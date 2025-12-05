@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { ThreeDMolViewer } from './ThreeDMolViewer';
 import { SourceTooltip } from './SourceTooltip';
+import Image from 'next/image';
 
 const STICK_STYLE: Record<string, unknown> = {
   stick: { colorscheme: 'Jmol', radius: 0.25 },
@@ -18,7 +19,7 @@ export function MutationTabs() {
         <h3 className="text-2xl font-semibold text-white">Which Mutations Causes Lynch Syndrome?</h3>
 
         <div className="flex justify-center">
-          <img src="/images/p622l-table.png" alt="P622L mutation" width={600} />
+          <Image src="/images/p622l-table.png" alt="P622L mutation" width={600} />
         </div>
 
         <p className="text-sm text-slate-400">
@@ -86,7 +87,7 @@ export function MutationTabs() {
       {activeKey === 'P622L' && (
         <>
           <p className="text-sm text-slate-400">
-            The MSH2 p.P622L mutation results in significantly reduced protein expression (approximately 50% of wild-type) and fails to stabilize key protein interactions with MSH3 and MSH6, preventing the mutant protein's accumulation on chromatin.
+            The MSH2 p.P622L mutation results in significantly reduced protein expression (approximately 50% of wild-type) and fails to stabilize key protein interactions with MSH3 and MSH6, preventing the mutant protein&apos;s accumulation on chromatin.
             Consequently, cells expressing this mutant are unable to perform DNA mismatch repair and display a lack of sensitivity to MNNG, failing to induce the necessary cell cycle arrest or apoptosis in response to DNA damage.
             This complete loss of repair and checkpoint signaling functions leads to the genomic instability that characterizes Lynch syndrome.
             <SourceTooltip
