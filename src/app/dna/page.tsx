@@ -48,6 +48,19 @@ export default function DnaPage() {
           />
         </section>
 
+        <section className="space-y-6">
+          <div className="space-y-3">
+            <h2 className="text-2xl font-semibold text-white">
+              Background
+            </h2>
+            <p className="text-slate-300">
+              Lynch syndrome, previously known as hereditary nonpolyposis colorectal cancer (HNPCC), is the most common inherited form of colorectal cancer (CRC), affecting more than one million people in the United States (CITATION). 
+              It results from harmful germline mutations in one of the four DNA mismatch repair (MMR) genes—MLH1, MSH2 (or EPCAM deletions affecting MSH2), MSH6, or PMS2. 
+              Among these, mutations in MLH1 and MSH2 account for over half of all confirmed cases (2). Individuals with Lynch syndrome have substantially elevated cancer risks: depending on the specific MMR gene involved, the lifetime risk of CRC can approach 70%, and risks for additional cancers, including endometrial, ovarian, urinary tract, and several gastrointestinal cancers are also significantly increased (Citation).
+            </p>
+          </div>
+        </section>
+
         <MutationTabs />
 
         <section className="space-y-4 rounded-lg border border-slate-800 bg-gradient-to-tr from-slate-900/60 to-slate-800/30 p-6 shadow-lg">
