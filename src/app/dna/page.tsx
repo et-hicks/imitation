@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { ThreeDMolViewer } from '../../components/ThreeDMolViewer';
 import { MutationTabs } from '../../components/MutationTabs';
+import { SourceTooltip } from '../../components/SourceTooltip';
 
 const POLYMERASE_MODEL_URL = 'https://files.rcsb.org/download/2O8B.pdb';
 const POLYMERASE_STYLE: Record<string, unknown> = {
@@ -48,37 +49,33 @@ export default function DnaPage() {
           />
         </section>
 
-        <section className="space-y-6">
-          <div className="space-y-3">
-            <h2 className="text-2xl font-semibold text-white">
-              Background
-            </h2>
+
+
+        <section className="space-y-4 rounded-lg border border-slate-800 bg-gradient-to-tr from-slate-900/60 to-slate-800/30 p-6 shadow-lg">
+          <div className="space-y-1">
+            {/* <p className="text-xs uppercase tracking-[0.35em] text-blue-300">Background</p> */}
+            <p className="text-xs uppercase tracking-[0.35em] text-blue-300">Hereditary Non-Polyposis Colorectal Cancer</p>
+            <h3 className="text-2xl font-semibold text-white">Background</h3>
+          </div>
+          <div className="space-y-3 text-slate-300 leading-relaxed">
             <p className="text-slate-300">
-              Lynch syndrome, previously known as hereditary nonpolyposis colorectal cancer (HNPCC), is the most common inherited form of colorectal cancer (CRC), affecting more than one million people in the United States (CITATION). 
-              It results from harmful germline mutations in one of the four DNA mismatch repair (MMR) genes—MLH1, MSH2 (or EPCAM deletions affecting MSH2), MSH6, or PMS2. 
-              Among these, mutations in MLH1 and MSH2 account for over half of all confirmed cases (2). Individuals with Lynch syndrome have substantially elevated cancer risks: depending on the specific MMR gene involved, the lifetime risk of CRC can approach 70%, and risks for additional cancers, including endometrial, ovarian, urinary tract, and several gastrointestinal cancers are also significantly increased (Citation).
+              Lynch syndrome, previously known as hereditary nonpolyposis colorectal cancer (HNPCC), is the most common inherited form of colorectal cancer (CRC), affecting more than one million people in the United States <SourceTooltip content="lorem ipsum" />.
+              It results from harmful germline mutations in one of the four DNA mismatch repair (MMR) genes—MLH1, MSH2 (or EPCAM deletions affecting MSH2), MSH6, or PMS2.
+              Among these, mutations in MLH1 and MSH2 account for over half of all confirmed cases <SourceTooltip content="lorem ipsum" />. Individuals with Lynch syndrome have substantially elevated cancer risks: depending on the specific MMR gene involved, the lifetime risk of CRC can approach 70%, and risks for additional cancers, including endometrial, ovarian, urinary tract, and several gastrointestinal cancers are also significantly increased<SourceTooltip content="lorem ipsum" />.
+            </p>
+            <p>
+              Lynch syndrome “mutation-positive” refers to individuals who carry a pathogenic germline MMR gene alteration confirmed through clinical genetic testing.
+              We also classify a related group as having “mutation-negative” Lynch syndrome, or Lynch-like syndrome.
+              These individuals meet clinical criteria for Lynch syndrome, present with non-sporadic MSI-high tumors (demonstrating microsatellite instability but without MLH1 promoter hypermethylation or a BRAF mutation), yet have either negative, inconclusive, or likely benign results on genetic testing or they may have declined genetic testing altogether.
+            </p>
+            <p>
+              Although they lack an identifiable pathogenic variant, individuals with Lynch-like syndrome require close clinical monitoring due to their elevated cancer risk.
+              As a result, they typically undergo intensified surveillance, which often includes annual or semiannual colonoscopy as well as additional screening based on personal and family history.
             </p>
           </div>
         </section>
 
         <MutationTabs />
-
-        <section className="space-y-4 rounded-lg border border-slate-800 bg-gradient-to-tr from-slate-900/60 to-slate-800/30 p-6 shadow-lg">
-          <div className="space-y-1">
-            <p className="text-xs uppercase tracking-[0.35em] text-blue-300">Background</p>
-            <h3 className="text-2xl font-semibold text-white">Why polymerase MLH1 matters</h3>
-          </div>
-          <div className="space-y-3 text-slate-300 leading-relaxed">
-            <p>
-              MLH1 is a mismatch-repair protein that safeguards DNA replication. When mutations weaken this safeguard,
-              replication errors accumulate and create the genetic instability associated with Lynch Syndrome.
-            </p>
-            <p>
-              Our project highlights how structural shifts at residues G68, V147, and L328 may destabilize the mismatch-repair complex
-              and increase cancer risk.
-            </p>
-          </div>
-        </section>
 
         <section className="space-y-4 rounded-lg border border-slate-800 bg-gradient-to-tr from-slate-900/60 to-slate-800/30 p-6 shadow-lg">
           <div className="space-y-1">
