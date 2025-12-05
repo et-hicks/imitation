@@ -101,7 +101,8 @@ export default function DnaPage() {
               It results from harmful germline mutations in one of the four DNA mismatch repair (MMR) genes—MLH1, MSH2 (or EPCAM deletions affecting MSH2), MSH6, or PMS2.
               Among these, mutations in MLH1 and MSH2 account for over half of all confirmed cases <SourceTooltip link="" isLink={false} content='citation needed' />.
               Individuals with Lynch syndrome have substantially elevated cancer risks: depending on the specific MMR gene involved, the lifetime risk of CRC can approach 60 - 80% for men, and 40 - 60% for women, and risks for additional cancers, including endometrial, ovarian, urinary tract, and several gastrointestinal cancers
-              are also significantly increased <SourceTooltip link="https://www.mdanderson.org/cancerwise/qa-understanding-and-managing-lynch-syndrome.h00-158589789.html"
+              are also significantly increased <SourceTooltip
+                link="https://www.mdanderson.org/cancerwise/qa-understanding-and-managing-lynch-syndrome.h00-158589789.html"
                 isLink={true} content='MD Anderson Cancer Center' />.
             </p>
             <p>
