@@ -25,6 +25,8 @@ type ThreeDMolViewerProps = {
   format?: string;
   style?: StyleConfig;
   backgroundColor?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onModelLoaded?: (viewer: any) => void;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,6 +94,7 @@ export function ThreeDMolViewer({
   format,
   style,
   backgroundColor,
+  onModelLoaded,
 }: ThreeDMolViewerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   // 3Dmol typings are not available, suppressing explicit any intentionally.
@@ -158,6 +161,9 @@ export function ThreeDMolViewer({
 
         if (mounted) {
           setStatus('ready');
+          if (onModelLoaded) {
+            onModelLoaded(viewerRef.current);
+          }
         }
       } catch (error) {
         console.error('Failed to initialize 3Dmol viewer.', error);

@@ -63,6 +63,7 @@ export function MutationTabs() {
         <p className="text-slate-300">
           Lynch Syndrome can occur in many different places, and can be caused from many different mutations.
           Here are a couple.
+          There are pathogenic mutations, and there are non-pathogenic mutations.
         </p>
       </div>
 

@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import { ThreeDMolViewer } from '../../components/ThreeDMolViewer';
 import { MutationTabs } from '../../components/MutationTabs';
 import { SourceTooltip } from '../../components/SourceTooltip';
+import { IsolatedProteinViewer } from '../../components/IsolatedProteinViewer';
 
 const POLYMERASE_MODEL_URL = 'https://files.rcsb.org/download/2O8B.pdb';
+// const POLYMERASE_MODEL_URL = 'https://files.rcsb.org/download/P43246.pdb';
 const POLYMERASE_STYLE: Record<string, unknown> = {
   cartoon: { color: 'spectrum' },
 };
@@ -37,8 +39,15 @@ export default function DnaPage() {
               DNA Polymerase Viewer (PDB 2O8B)
             </h2>
             <p className="text-slate-300">
-              Explore the full polymerase complex using a 3Dmol.js rendering of the PDB structure.
-              Rotate and zoom to inspect the enzyme&apos;s subdomains and ligand interactions.
+              Below is the fully formed, quaternary structure of the Mismatch Repair (MMR) protein MSH2/MSH6.
+              Mutations on the DNA that encode this protein can lead to Lynch Syndrome, a hereditary form of colorectal cancer.
+              Mutations in the folding of the protein also contribute to Lynch Syndrome.
+              When we talk about and discuss these mutations, we are referring to specific amino acid changes in the protein, which affects the structure as a whole.
+            </p>
+            <p className="text-slate-300">
+              It is important to note the difference between the mutation on the protein, and the use/function of the protein.
+              The complex works to ensure that pieces of DNA are replicated accurately, and that any mutations are caught and repaired.
+              Mutations on the protein itself can lead to Lynch Syndrome (which does affect the job it performs).
             </p>
           </div>
           <ThreeDMolViewer
@@ -47,6 +56,33 @@ export default function DnaPage() {
             format="pdb"
             style={POLYMERASE_STYLE}
           />
+        </section>
+
+        <section className="space-y-6">
+          <h2 className="text-2xl font-semibold text-white">
+            Subunit Analysis
+          </h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <h3 className="mb-2 text-xl font-medium text-blue-300">MSH2 (Chain A)</h3>
+              <IsolatedProteinViewer
+                pdbUrl={POLYMERASE_MODEL_URL}
+                targetChain="A"
+
+              />
+            </div>
+            <div>
+              <h3 className="mb-2 text-xl font-medium text-blue-300">MSH6 (Chain B)</h3>
+              <IsolatedProteinViewer
+                pdbUrl={POLYMERASE_MODEL_URL}
+                targetChain="B"
+
+              />
+            </div>
+          </div>
+          <p className="text-slate-300">
+            It is the combination of these two subunits that allows the complex to perform MMR.
+          </p>
         </section>
 
 
@@ -59,9 +95,14 @@ export default function DnaPage() {
           </div>
           <div className="space-y-3 text-slate-300 leading-relaxed">
             <p className="text-slate-300">
-              Lynch syndrome, previously known as hereditary nonpolyposis colorectal cancer (HNPCC), is the most common inherited form of colorectal cancer (CRC), affecting more than one million people in the United States <SourceTooltip content="lorem ipsum" />.
+              Lynch syndrome, previously known as hereditary nonpolyposis colorectal cancer (HNPCC), is the most common inherited form of colorectal cancer (CRC), affecting more than one million people in the United States
+              <SourceTooltip link="https://www.mdanderson.org/cancerwise/qa-understanding-and-managing-lynch-syndrome.h00-158589789.html"
+                isLink={true} content='MD Anderson Cancer Center' />.
               It results from harmful germline mutations in one of the four DNA mismatch repair (MMR) genes—MLH1, MSH2 (or EPCAM deletions affecting MSH2), MSH6, or PMS2.
-              Among these, mutations in MLH1 and MSH2 account for over half of all confirmed cases <SourceTooltip content="lorem ipsum" />. Individuals with Lynch syndrome have substantially elevated cancer risks: depending on the specific MMR gene involved, the lifetime risk of CRC can approach 70%, and risks for additional cancers, including endometrial, ovarian, urinary tract, and several gastrointestinal cancers are also significantly increased<SourceTooltip content="lorem ipsum" />.
+              Among these, mutations in MLH1 and MSH2 account for over half of all confirmed cases <SourceTooltip link="" isLink={false} content='citation needed' />.
+              Individuals with Lynch syndrome have substantially elevated cancer risks: depending on the specific MMR gene involved, the lifetime risk of CRC can approach 60 - 80% for men, and 40 - 60% for women, and risks for additional cancers, including endometrial, ovarian, urinary tract, and several gastrointestinal cancers
+              are also significantly increased <SourceTooltip link="https://www.mdanderson.org/cancerwise/qa-understanding-and-managing-lynch-syndrome.h00-158589789.html"
+                isLink={true} content='MD Anderson Cancer Center' />.
             </p>
             <p>
               Lynch syndrome “mutation-positive” refers to individuals who carry a pathogenic germline MMR gene alteration confirmed through clinical genetic testing.
@@ -128,6 +169,6 @@ export default function DnaPage() {
           </div>
         </section>
       </div>
-    </main>
+    </main >
   );
 }
