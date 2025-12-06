@@ -18,6 +18,85 @@ import { TreatmentTabs } from '../../components/TreatmentTabs';
 
 export default function DnaPage() {
 
+  const Science = () => {
+    return (<section className="space-y-4 rounded-lg border border-slate-800 bg-gradient-to-tr from-slate-900/60 to-slate-800/30 p-6 shadow-lg">
+      <div className="space-y-1">
+        <p className="text-xs uppercase tracking-[0.35em] text-blue-300">Science</p>
+        <h3 className="text-2xl font-semibold text-white">MMR Proteins, Functions, and Cancer</h3>
+      </div>
+      <div className="space-y-3 text-slate-300 leading-relaxed">
+        <p>
+          Our cells contain a built-in “proofreading” mechanism that corrects mistakes made during DNA replication.
+          This is called the Mismatch Repair (MMR) system. In this case, the MMR genes include: MLH1, MSH2, MSH6, PMS2, EPCAM (deletions in EPCAM affect MSH2 expression).
+          These proteins work together in pairs to scan DNA, identify mismatched bases, and fix them.
+          In this project, we focused on SMH 2  and SMH 6.
+        </p>
+        <p>
+          In this case, cancer develops through a “second hit” of MMR mismatch, as the working copy of the MMR gene in a particular cell becomes inactivated (due to somatic mutation).
+          As a result, that cell loses mismatch repair ability. This causes DNA errors to accumulate rapidly, especially in short repetitive regions called microsatellites. The majority of Lynch syndrome (LS)-related cancers are characterized by mismatch repair deficiency (dMMR) and high microsatellite instability (MSI-H).
+          Microsatellite Instability (MSI-H) is a hallmark of Lynch syndrome cancers indicating Indicate defective mismatch repair (dMMR).
+          The dMMR/MSI-H molecular phenotype is characterized by an exceptionally high tumor mutation burden, driven by numerous small insertion-deletion frameshift mutations (1-4 bp) and single-nucleotide missense mutations, which collectively lead to the formation of novel tumor-associated proteins.
+        </p>
+        <div className="mt-8 border-t border-slate-800 pt-6">
+          <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">References</h4>
+          <ol className="space-y-2 text-xs text-slate-400">
+            <li className="flex gap-2">
+              <span className="text-blue-400 font-medium whitespace-nowrap">[1]</span>
+              <span>
+                Lynch HT, Snyder CL, Shaw TG, Heinen CD, Hitchins MP. Milestones of Lynch syndrome: 1895-2015. Nat Rev Cancer 2015;15(3):181-94.
+              </span>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>)
+  }
+
+  const Mechanisms = () => {
+    return (
+      <section className="space-y-4 rounded-lg border border-slate-800 bg-gradient-to-tr from-slate-900/60 to-slate-800/30 p-6 shadow-lg">
+        <div className="space-y-1">
+          <p className="text-xs uppercase tracking-[0.35em] text-blue-300">Mechanisms</p>
+          <h3 className="text-2xl font-semibold text-white">NSAID Surpression of Cyclooxygenase</h3>
+        </div>
+        <div className="space-y-3 text-slate-300 leading-relaxed">
+          <p>
+            Currently, there are two pharmacological agents that have been shown to reduce the risk of colorectal cancer in Lynch syndrome patients: Aspirin and Naproxen.
+            NSAIDs like Aleve (Naproxen) and Aspirin help reduce inflammation and may lower the risk of colorectal cancer (CRC), especially in Lynch syndrome.
+            Their effect is tied to how they block cyclooxygenase (COX) enzymes, especially COX-2.
+          </p>
+          <br />
+          <p>
+            COX enzymes (COX-1 and COX-2) make prostaglandins (PGs), which are molecules involved in inflammation and cell growth.
+          </p>
+          <ol className="list-decimal list-inside pl-4 space-y-2 text-slate-300">
+            <li>COX-1 is always active and handles normal body functions (“housekeeping” prostaglandins).</li>
+            <li>COX-2 is normally turned off, but becomes highly active during inflammation and cancer.
+              COX-2 is over-expressed in ~85% of colorectal cancers and ~50% of adenomas.</li>
+          </ol>
+          <br />
+
+          <p>
+            One of the prostaglandins produced, PGE2, promotes:
+          </p>
+          <br />
+          <ul className="list-disc list-inside pl-4 space-y-2 text-slate-300">
+            <li>Inflammation</li>
+
+            <li>Tumor growth</li>
+
+            <li>Blood vessel formation</li>
+
+            <li>Suppression of the immune system</li>
+
+            <li>Prevention of cell death</li>
+          </ul>
+          <br />
+        </div>
+      </section>
+    );
+  }
+
   const Background = () => {
     const sources = [
       {
@@ -188,26 +267,9 @@ export default function DnaPage() {
 
         <MutationTabs />
 
-        <section className="space-y-4 rounded-lg border border-slate-800 bg-gradient-to-tr from-slate-900/60 to-slate-800/30 p-6 shadow-lg">
-          <div className="space-y-1">
-            <p className="text-xs uppercase tracking-[0.35em] text-blue-300">Science</p>
-            <h3 className="text-2xl font-semibold text-white">MMR Proteins, Functions, and Cancer</h3>
-          </div>
-          <div className="space-y-3 text-slate-300 leading-relaxed">
-            <p>
-              Our cells contain a built-in “proofreading” mechanism that corrects mistakes made during DNA replication.
-              This is called the Mismatch Repair (MMR) system. In this case, the MMR genes include: MLH1, MSH2, MSH6, PMS2, EPCAM (deletions in EPCAM affect MSH2 expression).
-              These proteins work together in pairs to scan DNA, identify mismatched bases, and fix them.
-              In this project, we focused on SMH 2  and SMH 6.
-            </p>
-            <p>
-              In this case, cancer develops through a “second hit” of MMR mismatch, as the working copy of the MMR gene in a particular cell becomes inactivated (due to somatic mutation).
-              As a result, that cell loses mismatch repair ability. This causes DNA errors to accumulate rapidly, especially in short repetitive regions called microsatellites. The majority of Lynch syndrome (LS)-related cancers are characterized by mismatch repair deficiency (dMMR) and high microsatellite instability (MSI-H).
-              Microsatellite Instability (MSI-H) is a hallmark of Lynch syndrome cancers indicating Indicate defective mismatch repair (dMMR).
-              The dMMR/MSI-H molecular phenotype is characterized by an exceptionally high tumor mutation burden, driven by numerous small insertion-deletion frameshift mutations (1-4 bp) and single-nucleotide missense mutations, which collectively lead to the formation of novel tumor-associated proteins.
-            </p>
-          </div>
-        </section>
+        <Science />
+
+        <Mechanisms />
 
         <TreatmentTabs />
 

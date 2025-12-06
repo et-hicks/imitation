@@ -33,10 +33,10 @@ export function MutationTabs() {
         <p className="text-slate-300">
           In Lynch syndrome, many pathogenic variants arise from mutations in DNA mismatch-repair proteins such as MSH2 and MSH6, and these mutations often impair function by destabilizing protein structure.
           Mutations that alter the chemical nature of amino acids can significantly disrupt protein stability. When a polar amino acid is replaced with a nonpolar one, the local environment loses important hydrogen-bond donors and acceptors, weakening interactions that help the protein fold correctly.
-          Similarly, glycine or proline substitutions often destabilize secondary structures; glycine's flexibility and proline's rigid ring frequently distort helices and β-strands, breaking the surrounding hydrogen-bond networks that keep these structures intact.
+          Similarly, glycine or proline substitutions often destabilize secondary structures; glycine&apos;s flexibility and proline&apos;s rigid ring frequently distort helices and beta-strands, breaking the surrounding hydrogen-bond networks that keep these structures intact.
         </p>
         <p className="text-slate-300">
-          These disruptions can lead to local unfolding in key regions of a protein, including β-strands, α-helices, and structural loops such as the P-loop.
+          These disruptions can lead to local unfolding in key regions of a protein, including beta-strands, alpha-helices, and structural loops such as the P-loop.
           Mutations may also interfere with salt bridges—electrostatic interactions between positively charged residues (Lys, Arg) and negatively charged ones (Asp, Glu).
           When these stabilizing interactions are lost or altered, the protein can become less stable, misfold, or lose proper function, ultimately weakening DNA mismatch repair and contributing to the development of Lynch-associated cancers.
         </p>

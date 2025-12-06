@@ -86,10 +86,7 @@ export function TreatmentTabs() {
                 {activeKey === 'drugs' && (
                     <div role="tabpanel">
                         <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Aspirin and Naproxen</h4>
-                        <p>
-                            Currently, there are two pharmacological agents that have been shown to reduce the risk of colorectal cancer in Lynch syndrome patients: Aspirin and Naproxen.
-                        </p>
-                        <br />
+
                         <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Aspirin</h4>
                         <div className="flex justify-center">
                             <Image src="/images/Aspirin.png" alt="Aspirin and Naproxen" height={400} width={600} />
@@ -109,7 +106,7 @@ export function TreatmentTabs() {
                         </p>
                         <p>
                             Wishing we had a better understanding as to why aspirin is so effective, but sadly we do not.
-                            The above study indicates just that it is effective in reducing risk, but admits the mechanism behind it is unknown.
+                            The above study indicates just that it is effective in reducing risk.
                             This project has given an example of three mutations in the MSH2 protein, but as Lynch Syndrome is a class of mutations on the MutSAlpha
                             protein, any one drug may be effected for a subsect of mutations, and invalid in others.
                         </p>
@@ -141,6 +138,9 @@ export function TreatmentTabs() {
                             While a genetic test is is required for diagnosing Lynch Syndrome, there are a number of physical screenings that can be done to monitor for colorectal cancer.
                             The best and most common is Colonoscopy, which is a procedure where a camera is inserted into the colon to check for any abnormalities.
                             Colonoscopies can remove any polyps, meaning that the same screening can both diagnose and prevent colorectal cancer.
+                        </p>
+                        <br />
+                        <p>
                             Other screenings for other locations that can cause cancers include biopsies of endometrial lining, a stomach endoscopy, urine tests, and skin exams.
                             The Mayo Clinic provides a list of physcial screenings, that dont include pharmacological treatments, or drugs of any kind.
                             <SourceTooltip
