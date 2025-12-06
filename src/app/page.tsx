@@ -55,6 +55,20 @@ export default function Home() {
       href: "/pong",
       status: "broken",
     },
+    {
+      title: "Plinko",
+      description: "A classic Plinko game.",
+      icon: "🕹️",
+      href: "/plinko",
+      status: "stable",
+    },
+    {
+      title: "Asteroids",
+      description: "Classic arcade game, but in space.",
+      icon: "☄️",
+      href: "/asteroids",
+      status: "broken",
+    },
   ];
 
   return (
