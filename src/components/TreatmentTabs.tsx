@@ -5,6 +5,24 @@ import Image from 'next/image';
 import { SourceTooltip } from './SourceTooltip';
 
 export function TreatmentTabs() {
+    const sources = [
+        {
+            content: "Cancer prevention with aspirin in hereditary colorectal cancer (Lynch syndrome), 10-year follow-up and registry-based 20-year data in the CAPP2 study: a double-blind, randomised, placebo-controlled trial",
+            link: "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736%2820%2930366-4/fulltext",
+            isLink: true,
+        },
+        {
+            content: "Naproxen chemoprevention induces proliferation of cytotoxic lymphocytes in Lynch Syndrome colorectal mucosa",
+            link: "https://pmc.ncbi.nlm.nih.gov/articles/PMC10189148/",
+            isLink: true,
+        },
+        {
+            content: "Mayo Clinic Lynch Syndrome",
+            link: "https://www.mayoclinic.org/diseases-conditions/lynch-syndrome/diagnosis-treatment/drc-20374719",
+            isLink: true,
+        }
+    ];
+
     const [activeKey, setActiveKey] = useState('drugs');
 
     return (
@@ -82,8 +100,12 @@ export function TreatmentTabs() {
                             427 of them were assigned to take 600mg of aspirin per day, and 434 were assigned to take a placebo.
                             The study went on for 2 years, with another 2 years as optional follow up.
                             The cumulative incidence of colorectal cancer dropped by about 15% for between those taking the placebo,
-                            and those taking aspirin after 20 years. <SourceTooltip content="Cancer prevention with aspirin in hereditary colorectal cancer (Lynch syndrome), 10-year follow-up and registry-based 20-year data in the CAPP2 study: a double-blind, randomised, placebo-controlled trial"
-                                link="https://www.thelancet.com/journals/lancet/article/PIIS0140-6736%2820%2930366-4/fulltext" number={1} isLink={true} />
+                            and those taking aspirin after 20 years. <SourceTooltip
+                                link={sources[0].link}
+                                isLink={sources[0].isLink}
+                                content={sources[0].content}
+                                number={1}
+                            />
                         </p>
                         <p>
                             Wishing we had a better understanding as to why aspirin is so effective, but sadly we do not.
@@ -102,8 +124,12 @@ export function TreatmentTabs() {
                             lymphocytes in the colonic mucosa.
                             From this proliferation of T cells, it appears that the main mechanism of activation is through the increase of an immune response in the colonic mucosa.
                             However, this is speculation, and the article mentions that mecahnistic studies are lacking.
-                            <SourceTooltip content="Naproxen chemoprevention induces proliferation of cytotoxic lymphocytes in Lynch Syndrome colorectal mucosa"
-                                link="https://pmc.ncbi.nlm.nih.gov/articles/PMC10189148/" number={2} isLink={true} />
+                            <SourceTooltip
+                                link={sources[1].link}
+                                isLink={sources[1].isLink}
+                                content={sources[1].content}
+                                number={2}
+                            />
                         </p>
                     </div>
                 )}
@@ -117,7 +143,12 @@ export function TreatmentTabs() {
                             Colonoscopies can remove any polyps, meaning that the same screening can both diagnose and prevent colorectal cancer.
                             Other screenings for other locations that can cause cancers include biopsies of endometrial lining, a stomach endoscopy, urine tests, and skin exams.
                             The Mayo Clinic provides a list of physcial screenings, that dont include pharmacological treatments, or drugs of any kind.
-                            <SourceTooltip content="Mayo Clinic Lynch Syndrome" link="https://www.mayoclinic.org/diseases-conditions/lynch-syndrome/diagnosis-treatment/drc-20374719" number={3} isLink={true} />
+                            <SourceTooltip
+                                link={sources[2].link}
+                                isLink={sources[2].isLink}
+                                content={sources[2].content}
+                                number={3}
+                            />
                         </p>
                     </div>
                 )}
@@ -128,10 +159,43 @@ export function TreatmentTabs() {
                         <p>
                             The nuclear, surgical option to reduce the risk of colorectal cancer, ovarian cancer, and endometrial cancer is to remove these.
                             Reccomendations for this are outside the scope of this project, but we cannot believe it to be anywhere close to being a reccomendation.
-                            <SourceTooltip content="Mayo Clinic Lynch Syndrome" link="https://www.mayoclinic.org/diseases-conditions/lynch-syndrome/diagnosis-treatment/drc-20374719" number={3} isLink={true} />
+                            <SourceTooltip
+                                link={sources[2].link}
+                                isLink={sources[2].isLink}
+                                content={sources[2].content}
+                                number={3}
+                            />
                         </p>
                     </div>
                 )}
+            </div>
+
+            <div className="mt-8 border-t border-slate-800 pt-6">
+                <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">References</h4>
+                <ol className="space-y-2 text-xs text-slate-400">
+                    {sources.map((source, index) => (
+                        <li key={index} className="flex gap-2">
+                            <span className="text-blue-400 font-medium whitespace-nowrap">[{index + 1}]</span>
+                            <span>
+                                {source.isLink ? (
+                                    <a
+                                        href={source.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:text-blue-300 hover:underline transition-colors block"
+                                    >
+                                        {source.content}
+                                    </a>
+                                ) : (
+                                    source.content
+                                )}
+                                {source.isLink && source.link && (
+                                    <span className="block text-slate-500 mt-0.5 break-all">{source.link}</span>
+                                )}
+                            </span>
+                        </li>
+                    ))}
+                </ol>
             </div>
         </section>
     );
