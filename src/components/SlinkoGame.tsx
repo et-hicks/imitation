@@ -9,6 +9,15 @@ const pressStart2P = Press_Start_2P({
     subsets: ['latin'],
 });
 
+enum PegType {
+    CIRCLE,
+    SQUARE,
+    TRIANGLE_ROTATING,
+    SQUARE_ROTATING
+}
+
+const CURRENT_PEG_TYPE: PegType = PegType.TRIANGLE_ROTATING;
+
 export function SlinkoGame() {
     const sceneRef = useRef<HTMLDivElement>(null);
     const [score, setScore] = useState(0);
@@ -100,17 +109,55 @@ export function SlinkoGame() {
                     const x = center - (row * spacingX) / 2 + (col * spacingX);
                     const y = startY + row * spacingY;
 
-                    // Revert to polygon (triangle)
-                    const peg = Bodies.polygon(x, y, 3, pegRadius + 2, {
-                        isStatic: true,
-                        label: 'peg',
-                        render: { fillStyle: pegColor }
-                    });
+                    let peg: Body;
 
-                    // Alternate rotation direction per row
-                    // Row 0 skipped. Row 1: CW, Row 2: CCW...
-                    const speed = (row % 2 === 0 ? 1 : -1) * 0.02;
-                    pegRotations.set(peg.id, speed);
+                    switch (CURRENT_PEG_TYPE) {
+                        case PegType.CIRCLE:
+                            peg = Bodies.circle(x, y, pegRadius, {
+                                isStatic: true,
+                                label: 'peg',
+                                render: { fillStyle: pegColor }
+                            });
+                            break;
+
+                        case PegType.SQUARE:
+                            // Square rotated 45deg (diamond) for better physics
+                            peg = Bodies.rectangle(x, y, pegRadius * 2, pegRadius * 2, {
+                                isStatic: true,
+                                label: 'peg',
+                                angle: Math.PI / 4,
+                                render: { fillStyle: pegColor }
+                            });
+                            break;
+
+                        case PegType.SQUARE_ROTATING:
+                            // Square rotated 45deg initially
+                            peg = Bodies.rectangle(x, y, pegRadius * 2, pegRadius * 2, {
+                                isStatic: true,
+                                label: 'peg',
+                                angle: Math.PI / 4,
+                                render: { fillStyle: pegColor }
+                            });
+                            break;
+
+                        case PegType.TRIANGLE_ROTATING:
+                        default:
+                            // Triangle
+                            peg = Bodies.polygon(x, y, 3, pegRadius + 2, {
+                                isStatic: true,
+                                label: 'peg',
+                                render: { fillStyle: pegColor }
+                            });
+                            break;
+                    }
+
+                    // Add rotation logic if enabled
+                    if (CURRENT_PEG_TYPE === PegType.TRIANGLE_ROTATING || CURRENT_PEG_TYPE === PegType.SQUARE_ROTATING) {
+                        // Alternate rotation direction per row
+                        // Row 0 skipped. Row 1: CW, Row 2: CCW...
+                        const speed = (row % 2 === 0 ? 1 : -1) * 0.02;
+                        pegRotations.set(peg.id, speed);
+                    }
 
                     pegs.push(peg);
                 }
@@ -122,15 +169,17 @@ export function SlinkoGame() {
             const runner = Runner.create();
             Runner.run(runner, engine);
 
-            // Rotate pegs on every frame
-            Events.on(engine, 'beforeUpdate', () => {
-                pegs.forEach(peg => {
-                    const speed = pegRotations.get(peg.id);
-                    if (speed) {
-                        Matter.Body.setAngle(peg, peg.angle + speed);
-                    }
+            // Rotate pegs on every frame if enabled
+            if (CURRENT_PEG_TYPE === PegType.TRIANGLE_ROTATING || CURRENT_PEG_TYPE === PegType.SQUARE_ROTATING) {
+                Events.on(engine, 'beforeUpdate', () => {
+                    pegs.forEach(peg => {
+                        const speed = pegRotations.get(peg.id);
+                        if (speed) {
+                            Matter.Body.setAngle(peg, peg.angle + speed);
+                        }
+                    });
                 });
-            });
+            }
 
             Events.on(engine, 'collisionStart', (event: IEventCollision<Engine>) => {
                 const pairs = event.pairs;
@@ -145,6 +194,34 @@ export function SlinkoGame() {
                         setTimeout(() => {
                             pegBody.render.fillStyle = pegColor;
                         }, 100);
+                    }
+                }
+            });
+
+            // Energy Boost Logic
+            Events.on(engine, 'collisionEnd', (event: IEventCollision<Engine>) => {
+                const pairs = event.pairs;
+                for (const pair of pairs) {
+                    // Check if ball (A or B)
+                    const bodyA = pair.bodyA;
+                    const bodyB = pair.bodyB;
+                    let ballBody: Body | null = null;
+
+                    if (bodyA.label === 'ball') ballBody = bodyA;
+                    else if (bodyB.label === 'ball') ballBody = bodyB;
+
+                    if (ballBody) {
+                        // If ball is moving upwards (negative Y velocity)
+                        if (ballBody.velocity.y < 0) {
+                            // 30% chance gain energy
+                            if (Math.random() < 0.45) {
+                                // Multiply velocity to add energy
+                                Matter.Body.setVelocity(ballBody, {
+                                    x: ballBody.velocity.x * 1.5, // Boost speed
+                                    y: ballBody.velocity.y * 1.8
+                                });
+                            }
+                        }
                     }
                 }
             });
@@ -182,8 +259,8 @@ export function SlinkoGame() {
         const dropX = Math.max(20, Math.min(width - 20, previewX));
 
         const ball = Matter.Bodies.circle(dropX, 20, 8, {
-            restitution: 0.8,
-            friction: 0.005,
+            restitution: 0.9,
+            friction: 0.001,
             label: 'ball',
             render: {
                 fillStyle: '#00ffff'
