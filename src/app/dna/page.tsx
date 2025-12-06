@@ -195,10 +195,16 @@ export default function DnaPage() {
           </div>
           <div className="space-y-3 text-slate-300 leading-relaxed">
             <p>
-              With MMR proteins have a few tools at their disposal.
-              find and replace: https://pmc.ncbi.nlm.nih.gov/articles/PMC5976031/pdf/fow071.pdf
-              signal and unwind: ibid
-              apoptosis: https://pmc.ncbi.nlm.nih.gov/articles/PMC3389999/
+              Our cells contain a built-in “proofreading” mechanism that corrects mistakes made during DNA replication.
+              This is called the Mismatch Repair (MMR) system. In this case, the MMR genes include: MLH1, MSH2, MSH6, PMS2, EPCAM (deletions in EPCAM affect MSH2 expression).
+              These proteins work together in pairs to scan DNA, identify mismatched bases, and fix them.
+              In this project, we focused on SMH 2  and SMH 6.
+            </p>
+            <p>
+              In this case, cancer develops through a “second hit” of MMR mismatch, as the working copy of the MMR gene in a particular cell becomes inactivated (due to somatic mutation).
+              As a result, that cell loses mismatch repair ability. This causes DNA errors to accumulate rapidly, especially in short repetitive regions called microsatellites. The majority of Lynch syndrome (LS)-related cancers are characterized by mismatch repair deficiency (dMMR) and high microsatellite instability (MSI-H).
+              Microsatellite Instability (MSI-H) is a hallmark of Lynch syndrome cancers indicating Indicate defective mismatch repair (dMMR).
+              The dMMR/MSI-H molecular phenotype is characterized by an exceptionally high tumor mutation burden, driven by numerous small insertion-deletion frameshift mutations (1-4 bp) and single-nucleotide missense mutations, which collectively lead to the formation of novel tumor-associated proteins.
             </p>
           </div>
         </section>

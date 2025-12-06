@@ -20,56 +20,56 @@ export default function Home() {
     href: string;
     status: Status;
   }> = [
-    {
-      title: "BioChem Project",
-      description: "Because school is important",
-      icon: "👥",
-      href: "/dna",
-      status: "static",
-    },
-    {
-      title: "Twitter",
-      description: "A clone of Twitter, because everyone seems to do it these days",
-      icon: "💬",
-      href: "/twitter",
-      status: "broken",
-    },
-    {
-      title: "Careers",
-      description: "Explore roles and opportunities",
-      icon: "💼",
-      href: "/careers",
-      status: "static",
-    },
-    {
-      title: "Sevodal",
-      description: "Daily seven-letter puzzle challenge",
-      icon: "🧪",
-      href: "/sevodal",
-      status: "stable",
-    },
-    {
-      title: "Pong",
-      description: "Classic arcade game built with Phaser",
-      icon: "🏓",
-      href: "/pong",
-      status: "broken",
-    },
-    {
-      title: "Plinko",
-      description: "A classic Plinko game.",
-      icon: "🕹️",
-      href: "/plinko",
-      status: "stable",
-    },
-    {
-      title: "Asteroids",
-      description: "Classic arcade game, but in space.",
-      icon: "☄️",
-      href: "/asteroids",
-      status: "broken",
-    },
-  ];
+      {
+        title: "BioChem Project",
+        description: "Because school is important",
+        icon: "👥",
+        href: "/dna",
+        status: "static",
+      },
+      {
+        title: "Twitter",
+        description: "A clone of Twitter, because everyone seems to do it these days",
+        icon: "💬",
+        href: "/twitter",
+        status: "broken",
+      },
+      {
+        title: "Careers",
+        description: "Explore roles and opportunities",
+        icon: "💼",
+        href: "/careers",
+        status: "static",
+      },
+      {
+        title: "Sevodal",
+        description: "Daily seven-letter puzzle challenge",
+        icon: "🧪",
+        href: "/sevodal",
+        status: "stable",
+      },
+      {
+        title: "Pong",
+        description: "Classic arcade game built with Phaser",
+        icon: "🏓",
+        href: "/pong",
+        status: "broken",
+      },
+      {
+        title: "Slinko",
+        description: "A classic Plinko game.",
+        icon: "🕹️",
+        href: "/slinko",
+        status: "stable",
+      },
+      {
+        title: "Asteroids",
+        description: "Classic arcade game, but in space.",
+        icon: "☄️",
+        href: "/asteroid",
+        status: "stable",
+      },
+    ];
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#030617] via-[#061028] to-[#0a1b3d] text-slate-100">
@@ -136,7 +136,7 @@ export default function Home() {
               </p>
               <p className="text-sky-300">
                 The warrenty for all this software is as-is.
-                Nothing here is garunteed to work. 
+                Nothing here is garunteed to work.
                 Please use the key up top to determine if you actually want to travel to that webpage.
               </p>
             </div>

@@ -30,10 +30,15 @@ export function MutationTabs() {
           <Image src="/images/p622l-table.png" alt="P622L mutation" width={600} height={400} />
         </div>
 
-        <p className="text-sm text-slate-400">
-          We see there are a couple of mutations that cause Lynch Syndrome.
-          Here are some that are studied, and why they cause Lynch Syndrome.
-          Noting that it is a class of disorders that are caused by mutations on four different genes, and not any one specific thing.
+        <p className="text-slate-300">
+          In Lynch syndrome, many pathogenic variants arise from mutations in DNA mismatch-repair proteins such as MSH2 and MSH6, and these mutations often impair function by destabilizing protein structure.
+          Mutations that alter the chemical nature of amino acids can significantly disrupt protein stability. When a polar amino acid is replaced with a nonpolar one, the local environment loses important hydrogen-bond donors and acceptors, weakening interactions that help the protein fold correctly.
+          Similarly, glycine or proline substitutions often destabilize secondary structures; glycine's flexibility and proline's rigid ring frequently distort helices and β-strands, breaking the surrounding hydrogen-bond networks that keep these structures intact.
+        </p>
+        <p className="text-slate-300">
+          These disruptions can lead to local unfolding in key regions of a protein, including β-strands, α-helices, and structural loops such as the P-loop.
+          Mutations may also interfere with salt bridges—electrostatic interactions between positively charged residues (Lys, Arg) and negatively charged ones (Asp, Glu).
+          When these stabilizing interactions are lost or altered, the protein can become less stable, misfold, or lose proper function, ultimately weakening DNA mismatch repair and contributing to the development of Lynch-associated cancers.
         </p>
 
       </div>
@@ -94,7 +99,7 @@ export function MutationTabs() {
       {/* Content for P622L */}
       {activeKey === 'P622L' && (
         <>
-          <p className="text-sm text-slate-400">
+          <p className="text-slate-300">
             The MSH2 p.P622L mutation results in significantly reduced protein expression (approximately 50% of wild-type) and fails to stabilize key protein interactions with MSH3 and MSH6, preventing the mutant protein&apos;s accumulation on chromatin.
             Consequently, cells expressing this mutant are unable to perform DNA mismatch repair and display a lack of sensitivity to MNNG, failing to induce the necessary cell cycle arrest or apoptosis in response to DNA damage.
             This complete loss of repair and checkpoint signaling functions leads to the genomic instability that characterizes Lynch syndrome.
@@ -134,7 +139,7 @@ export function MutationTabs() {
       {/* Content for V147G */}
       {activeKey === 'R524P' && (
         <>
-          <p className="text-sm text-slate-400">
+          <p className="text-slate-300">
             The MSH2 R524P mutation causes Lynch syndrome through a different mechanism than the P622L mutation.
             While the R524P mutant protein is stably expressed (unlike P622L), it is functionally defective because it completely fails to accumulate on chromatin or form the necessary protein complexes with MLH1 and PCNA.
             Without these interactions, the protein cannot repair DNA mismatches or trigger apoptosis (cell death) in response to DNA damage.
@@ -175,7 +180,7 @@ export function MutationTabs() {
       {/* Content for L328M */}
       {activeKey === 'D167H' && (
         <>
-          <p className="text-sm text-slate-400">
+          <p className="text-slate-300">
             Certain mutations in the MSH2 protein may not lead to increased rates of cancer, and may be benign.
             In the study, cells expressing D167H demonstrated the ability to fully restore DNA mismatch repair activity, effectively fixing the genetic errors that typically drive cancer development.
             Furthermore, the mutant protein was stable, correctly localized to the chromatin, and successfully recruited necessary partners like MLH1 to form functional repair complexes.
@@ -212,7 +217,9 @@ export function MutationTabs() {
           </div>
         </>
       )}
-      <p className="text-sm text-slate-400">As we can see, whether or not a mutation exists, does not necessarily mean that even has an increased risk of developing cancer.</p>
+      <p className="text-slate-300">
+        As we can see, whether or not a mutation exists, does not necessarily mean that even has an increased risk of developing cancer.
+      </p>
 
       {/* 3. Replace the `// numbers here` comment with the references list loop. */}
       <div className="mt-8 border-t border-slate-800 pt-6">
