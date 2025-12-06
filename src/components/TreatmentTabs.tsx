@@ -110,18 +110,25 @@ export function TreatmentTabs() {
 
                 {activeKey === 'physical' && (
                     <div role="tabpanel">
+                        <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Physical Screening</h4>
                         <p>
-                            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                            While a genetic test is is required for diagnosing Lynch Syndrome, there are a number of physical screenings that can be done to monitor for colorectal cancer.
+                            The best and most common is Colonoscopy, which is a procedure where a camera is inserted into the colon to check for any abnormalities.
+                            Colonoscopies can remove any polyps, meaning that the same screening can both diagnose and prevent colorectal cancer.
+                            Other screenings for other locations that can cause cancers include biopsies of endometrial lining, a stomach endoscopy, urine tests, and skin exams.
+                            The Mayo Clinic provides a list of physcial screenings, that dont include pharmacological treatments, or drugs of any kind.
+                            <SourceTooltip content="Mayo Clinic Lynch Syndrome" link="https://www.mayoclinic.org/diseases-conditions/lynch-syndrome/diagnosis-treatment/drc-20374719" number={3} isLink={true} />
                         </p>
                     </div>
                 )}
 
                 {activeKey === 'nuclear' && (
                     <div role="tabpanel">
+                        <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Nuclear Option</h4>
                         <p>
-                            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam,
-                            eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+                            The nuclear, surgical option to reduce the risk of colorectal cancer, ovarian cancer, and endometrial cancer is to remove these.
+                            Reccomendations for this are outside the scope of this project, but we cannot believe it to be anywhere close to being a reccomendation.
+                            <SourceTooltip content="Mayo Clinic Lynch Syndrome" link="https://www.mayoclinic.org/diseases-conditions/lynch-syndrome/diagnosis-treatment/drc-20374719" number={3} isLink={true} />
                         </p>
                     </div>
                 )}
