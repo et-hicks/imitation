@@ -19,7 +19,7 @@ export function MutationTabs() {
         <h3 className="text-2xl font-semibold text-white">Which Mutations Causes Lynch Syndrome?</h3>
 
         <div className="flex justify-center">
-          <Image src="/images/p622l-table.png" alt="P622L mutation" width={600} />
+          <Image src="/images/p622l-table.png" alt="P622L mutation" width={600} height={400} />
         </div>
 
         <p className="text-sm text-slate-400">
