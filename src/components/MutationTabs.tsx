@@ -10,6 +10,14 @@ const STICK_STYLE: Record<string, unknown> = {
 };
 
 export function MutationTabs() {
+  const sources = [
+    {
+      content: 'Lynch Syndrome-associated Mutations in MSH2 Alter DNA Repair and Checkpoint Response Functions In Vivo',
+      link: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC2947597/',
+      isLink: true,
+    }
+  ];
+
   const [activeKey, setActiveKey] = useState('P622L');
 
   return (
@@ -91,9 +99,10 @@ export function MutationTabs() {
             Consequently, cells expressing this mutant are unable to perform DNA mismatch repair and display a lack of sensitivity to MNNG, failing to induce the necessary cell cycle arrest or apoptosis in response to DNA damage.
             This complete loss of repair and checkpoint signaling functions leads to the genomic instability that characterizes Lynch syndrome.
             <SourceTooltip
-              link="https://pmc.ncbi.nlm.nih.gov/articles/PMC2947597/"
-              isLink={true}
-              content='Lynch Syndrome-associated Mutations in MSH2 Alter DNA Repair and Checkpoint Response Functions In Vivo'
+              link={sources[0].link}
+              isLink={sources[0].isLink}
+              content={sources[0].content}
+              number={1}
             />.
           </p>
 
@@ -131,9 +140,10 @@ export function MutationTabs() {
             Without these interactions, the protein cannot repair DNA mismatches or trigger apoptosis (cell death) in response to DNA damage.
             This allows cells with genetic errors to survive and propagate, leading to the high cancer risk associated with Lynch syndrome.
             <SourceTooltip
-              link="https://pmc.ncbi.nlm.nih.gov/articles/PMC2947597/"
-              isLink={true}
-              content='Lynch Syndrome-associated Mutations in MSH2 Alter DNA Repair and Checkpoint Response Functions In Vivo'
+              link={sources[0].link}
+              isLink={sources[0].isLink}
+              content={sources[0].content}
+              number={1}
             />.
           </p>
 
@@ -171,9 +181,10 @@ export function MutationTabs() {
             Furthermore, the mutant protein was stable, correctly localized to the chromatin, and successfully recruited necessary partners like MLH1 to form functional repair complexes.
             Crucially, it also maintained the cellular checkpoint response, triggering cell cycle arrest and apoptosis when exposed to DNA damage, which prevents the propagation of damaged cells in a way that pathogenic variants cannot.
             <SourceTooltip
-              link="https://pmc.ncbi.nlm.nih.gov/articles/PMC2947597/"
-              isLink={true}
-              content='Lynch Syndrome-associated Mutations in MSH2 Alter DNA Repair and Checkpoint Response Functions In Vivo'
+              link={sources[0].link}
+              isLink={sources[0].isLink}
+              content={sources[0].content}
+              number={1}
             />.
           </p>
 
@@ -202,6 +213,35 @@ export function MutationTabs() {
         </>
       )}
       <p className="text-sm text-slate-400">As we can see, whether or not a mutation exists, does not necessarily mean that even has an increased risk of developing cancer.</p>
+
+      {/* 3. Replace the `// numbers here` comment with the references list loop. */}
+      <div className="mt-8 border-t border-slate-800 pt-6">
+        <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">References</h4>
+        <ol className="space-y-2 text-xs text-slate-400">
+          {sources.map((source, index) => (
+            <li key={index} className="flex gap-2">
+              <span className="text-blue-400 font-medium whitespace-nowrap">[{index + 1}]</span>
+              <span>
+                {source.isLink ? (
+                  <a
+                    href={source.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-blue-300 hover:underline transition-colors block"
+                  >
+                    {source.content}
+                  </a>
+                ) : (
+                  source.content
+                )}
+                {source.isLink && source.link && (
+                  <span className="block text-slate-500 mt-0.5 break-all">{source.link}</span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
     </section>
   );
 }
