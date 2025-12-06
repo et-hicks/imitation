@@ -14,7 +14,7 @@ export function TreatmentTabs() {
                 <h3 className="text-2xl font-semibold text-white">Current Clinical Approaches</h3>
             </div>
 
-            <div role="tablist" aria-label="Treatment options" className="flex flex-wrap gap-3 sticky top-14 z-40 bg-slate-900/95 backdrop-blur py-4 -mt-4 mb-4 transition-all will-change-transform">
+            <div role="tablist" aria-label="Treatment options" className="flex flex-wrap gap-3 sticky top-14 z-40 backdrop-blur-xl py-4 -mt-4 mb-4 transition-all will-change-transform">
                 {/* Tab 1 */}
                 <button
                     type="button"
