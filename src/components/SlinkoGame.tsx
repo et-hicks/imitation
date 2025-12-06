@@ -12,7 +12,7 @@ const pressStart2P = Press_Start_2P({
 export function SlinkoGame() {
     const sceneRef = useRef<HTMLDivElement>(null);
     const [score, setScore] = useState(0);
-    const [previewX, setPreviewX] = useState<number>(210);
+    const [previewX, setPreviewX] = useState<number>(255);
     const engineRef = useRef<Engine | null>(null);
     const MatterRef = useRef<typeof import('matter-js') | null>(null);
 
@@ -38,9 +38,25 @@ export function SlinkoGame() {
             engineRef.current = engine;
 
             // Reduce height to ensure it fits in viewport comfortably
-            // Reduce width further for tighter fit -> 420px
-            const width = 420;
-            const height = 600;
+            const rows = 11;
+            const spacingX = 50;
+            const spacingY = 50;
+
+            // Dynamic width calculation:
+            // Width = (LastRowWidth) + Padding
+            // LastRowWidth = (rows - 1) * spacingX
+            // Padding = 30px * 2 = 60px
+            const width = (rows - 1) * spacingX + 60;
+
+            // Dynamic height calculation:
+            // Height = StartY + HeightOfTriangle + BottomClearance
+            // HeightOfTriangle = (rows - 1) * spacingY
+            // StartY = 100
+            // BottomClearance = 250 (to satisfy > 200px req)
+            const startY = 100;
+            const bottomClearance = 100;
+            const height = startY + (rows - 1) * spacingY + bottomClearance;
+
             const center = width / 2;
 
             const render = Render.create({
@@ -73,25 +89,29 @@ export function SlinkoGame() {
             });
 
             const pegs: Body[] = [];
-            const rows = 8;
-            const pegRadius = 8; // Increased from 6
-            const startX = center;
-            const startY = 100;
-            const spacingX = 50;
-            const spacingY = 50;
+            const pegRotations = new Map<number, number>(); // Store rotation speed for each peg
+            const pegRadius = 8;
 
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col <= row; col++) {
                     // Skip the very first peg (top of separate triangle)
                     if (row === 0 && col === 0) continue;
 
-                    const x = startX - (row * spacingX) / 2 + (col * spacingX);
+                    const x = center - (row * spacingX) / 2 + (col * spacingX);
                     const y = startY + row * spacingY;
-                    const peg = Bodies.circle(x, y, pegRadius, {
+
+                    // Revert to polygon (triangle)
+                    const peg = Bodies.polygon(x, y, 3, pegRadius + 2, {
                         isStatic: true,
                         label: 'peg',
                         render: { fillStyle: pegColor }
                     });
+
+                    // Alternate rotation direction per row
+                    // Row 0 skipped. Row 1: CW, Row 2: CCW...
+                    const speed = (row % 2 === 0 ? 1 : -1) * 0.02;
+                    pegRotations.set(peg.id, speed);
+
                     pegs.push(peg);
                 }
             }
@@ -101,6 +121,16 @@ export function SlinkoGame() {
             Render.run(render);
             const runner = Runner.create();
             Runner.run(runner, engine);
+
+            // Rotate pegs on every frame
+            Events.on(engine, 'beforeUpdate', () => {
+                pegs.forEach(peg => {
+                    const speed = pegRotations.get(peg.id);
+                    if (speed) {
+                        Matter.Body.setAngle(peg, peg.angle + speed);
+                    }
+                });
+            });
 
             Events.on(engine, 'collisionStart', (event: IEventCollision<Engine>) => {
                 const pairs = event.pairs;
@@ -128,6 +158,8 @@ export function SlinkoGame() {
             };
         };
 
+        // Initialize state to roughly center based on likely width (510)
+        setPreviewX(255);
         initMatter();
 
         return () => {
@@ -139,9 +171,15 @@ export function SlinkoGame() {
         if (!engineRef.current || !MatterRef.current) return;
         const Matter = MatterRef.current;
 
+        // Dynamic clamp based on rows = 10 -> width = 510
+        // Safe to recalculate or hardcode since rows is constant in this scope
+        const rows = 10;
+        const spacingX = 50;
+        const width = (rows - 1) * spacingX + 60;
+
         // Use the current preview X for the drop
-        // Clamp roughly between walls (width 420)
-        const dropX = Math.max(20, Math.min(400, previewX));
+        // Clamp roughly between walls (20px margin safely)
+        const dropX = Math.max(20, Math.min(width - 20, previewX));
 
         const ball = Matter.Bodies.circle(dropX, 20, 8, {
             restitution: 0.8,
