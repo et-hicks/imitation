@@ -9,61 +9,59 @@ export function TreatmentTabs() {
 
     return (
         <section className="space-y-4 rounded-lg border border-slate-800 bg-gradient-to-tr from-slate-900/60 to-slate-800/30 p-6 shadow-lg">
-            <div className="space-y-4">
-                <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-[0.35em] text-blue-300">Treatment</p>
-                    <h3 className="text-2xl font-semibold text-white">Current Clinical Approaches</h3>
-                </div>
+            <div className="space-y-1 mb-4">
+                <p className="text-xs uppercase tracking-[0.35em] text-blue-300">Treatment</p>
+                <h3 className="text-2xl font-semibold text-white">Current Clinical Approaches</h3>
+            </div>
 
-                <div role="tablist" aria-label="Treatment options" className="flex flex-wrap gap-3">
-                    {/* Tab 1 */}
-                    <button
-                        type="button"
-                        role="tab"
-                        aria-selected={activeKey === 'drugs'}
-                        onClick={() => setActiveKey('drugs')}
-                        className={[
-                            'rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
-                            activeKey === 'drugs'
-                                ? 'border-blue-400 bg-blue-500/10 text-blue-200'
-                                : 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-blue-400 hover:text-blue-200',
-                        ].join(' ')}
-                    >
-                        Drugs and Pharmacological
-                    </button>
+            <div role="tablist" aria-label="Treatment options" className="flex flex-wrap gap-3 sticky top-14 z-40 bg-slate-900/95 backdrop-blur py-4 -mt-4 mb-4 transition-all will-change-transform">
+                {/* Tab 1 */}
+                <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeKey === 'drugs'}
+                    onClick={() => setActiveKey('drugs')}
+                    className={[
+                        'rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
+                        activeKey === 'drugs'
+                            ? 'border-blue-400 bg-blue-500/10 text-blue-200'
+                            : 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-blue-400 hover:text-blue-200',
+                    ].join(' ')}
+                >
+                    Drugs and Pharmacological
+                </button>
 
-                    {/* Tab 2 */}
-                    <button
-                        type="button"
-                        role="tab"
-                        aria-selected={activeKey === 'physical'}
-                        onClick={() => setActiveKey('physical')}
-                        className={[
-                            'rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
-                            activeKey === 'physical'
-                                ? 'border-blue-400 bg-blue-500/10 text-blue-200'
-                                : 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-blue-400 hover:text-blue-200',
-                        ].join(' ')}
-                    >
-                        Physical
-                    </button>
+                {/* Tab 2 */}
+                <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeKey === 'physical'}
+                    onClick={() => setActiveKey('physical')}
+                    className={[
+                        'rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
+                        activeKey === 'physical'
+                            ? 'border-blue-400 bg-blue-500/10 text-blue-200'
+                            : 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-blue-400 hover:text-blue-200',
+                    ].join(' ')}
+                >
+                    Physical
+                </button>
 
-                    {/* Tab 3 */}
-                    <button
-                        type="button"
-                        role="tab"
-                        aria-selected={activeKey === 'nuclear'}
-                        onClick={() => setActiveKey('nuclear')}
-                        className={[
-                            'rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
-                            activeKey === 'nuclear'
-                                ? 'border-blue-400 bg-blue-500/10 text-blue-200'
-                                : 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-blue-400 hover:text-blue-200',
-                        ].join(' ')}
-                    >
-                        Nuclear Option
-                    </button>
-                </div>
+                {/* Tab 3 */}
+                <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeKey === 'nuclear'}
+                    onClick={() => setActiveKey('nuclear')}
+                    className={[
+                        'rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
+                        activeKey === 'nuclear'
+                            ? 'border-blue-400 bg-blue-500/10 text-blue-200'
+                            : 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-blue-400 hover:text-blue-200',
+                    ].join(' ')}
+                >
+                    Nuclear Option
+                </button>
             </div>
 
             <div className="space-y-3 text-slate-300 leading-relaxed min-h-[100px]">
