@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   title: 'DNA Project',
 };
 
+import { TreatmentTabs } from '../../components/TreatmentTabs';
+
 export default function DnaPage() {
 
   const Background = () => {
@@ -110,26 +112,7 @@ export default function DnaPage() {
     )
   }
 
-  const Treatment = () => {
-    return (
-      <section className="space-y-4 rounded-lg border border-slate-800 bg-gradient-to-tr from-slate-900/60 to-slate-800/30 p-6 shadow-lg">
-        <div className="space-y-1">
-          <p className="text-xs uppercase tracking-[0.35em] text-blue-300">Treatment</p>
-          <h3 className="text-2xl font-semibold text-white">Current Clinical Approaches</h3>
-        </div>
-        <div className="space-y-3 text-slate-300 leading-relaxed">
-          <p>
-            Patients with confirmed MLH1 mutations undergo regular colonoscopies, endometrial screening, and lab testing
-            to detect lesions before they progress. Preventive surgeries are discussed for high-risk individuals.
-          </p>
-          <p>
-            Targeted therapies, including checkpoint inhibitors and PARP inhibitors, are being tested to complement surgical interventions
-            for Lynch-associated tumors. Treatment plans remain highly individualized.
-          </p>
-        </div>
-      </section>
-    )
-  }
+
 
   return (
     <main className="min-h-[calc(100vh-56px)] bg-black px-6 py-12 text-white">
@@ -220,7 +203,7 @@ export default function DnaPage() {
           </div>
         </section>
 
-        <Treatment />
+        <TreatmentTabs />
 
         <section className="space-y-4 rounded-lg border border-slate-800 bg-gradient-to-tr from-slate-900/60 to-slate-800/30 p-6 shadow-lg">
           <div className="space-y-1">
