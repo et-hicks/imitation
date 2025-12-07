@@ -268,7 +268,7 @@ export default function BoxesPage() {
 
                     {results.length === 0 ? (
                         <div className="text-center py-10 text-neutral-500 italic">
-                            No data yet. Set your parameters and click "Generate Trials".
+                            No data yet. Set your parameters and click Generate Trials.
                         </div>
                     ) : (
                         <div className="grid gap-3">
