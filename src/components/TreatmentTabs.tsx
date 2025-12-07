@@ -113,7 +113,7 @@ export function TreatmentTabs() {
                         <br />
                         <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Naproxen</h4>
                         <div className="flex justify-center">
-                            <Image src={"/images/Naproxen.png"} alt="Naproxen" height={400} width={600} unoptimized />
+                            <Image src={"/public/images/Naproxen.png"} alt="Naproxen" height={400} width={600} unoptimized />
                         </div>
                         <br />
                         <p>
