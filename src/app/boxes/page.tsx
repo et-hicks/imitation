@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 
@@ -150,6 +150,21 @@ export default function BoxesPage() {
     const [results, setResults] = useState<SimulationResult[]>([]);
     const [generating, setGenerating] = useState(false);
 
+    // Calculate running averages
+    const averageResults = useMemo(() => {
+        let aliceSum = 0;
+        let bobSum = 0;
+        return results.map((res, index) => {
+            aliceSum += res.aliceChecks;
+            bobSum += res.bobChecks;
+            return {
+                id: res.id,
+                aliceAvg: parseFloat((aliceSum / (index + 1)).toFixed(2)),
+                bobAvg: parseFloat((bobSum / (index + 1)).toFixed(2)),
+            };
+        });
+    }, [results]);
+
     // Locked when there is data
     const isLocked = results.length > 0;
 
@@ -205,6 +220,25 @@ export default function BoxesPage() {
                             <Legend verticalAlign="top" />
                             <Line type="monotone" dataKey="aliceChecks" name="Alice" stroke="#ef4444" strokeWidth={2} dot={false} activeDot={{ r: 6 }} />
                             <Line type="monotone" dataKey="bobChecks" name="Bob" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 6 }} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Average Graph Section */}
+                <div className="bg-neutral-800/50 p-6 rounded-2xl border border-neutral-700/50 shadow-xl backdrop-blur-sm h-[400px]">
+                    <h2 className="text-xl font-semibold mb-4 text-center text-neutral-300">Average Checks Needed (Cumulative)</h2>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={averageResults}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#444" opacity={0.3} />
+                            <XAxis dataKey="id" stroke="#888" label={{ value: 'Trial #', position: 'insideBottomRight', offset: -5 }} />
+                            <YAxis stroke="#888" label={{ value: 'Avg Checks', angle: -90, position: 'insideLeft' }} />
+                            <Tooltip
+                                contentStyle={{ backgroundColor: '#262626', borderColor: '#404040' }}
+                                itemStyle={{ color: '#e5e5e5' }}
+                            />
+                            <Legend verticalAlign="top" />
+                            <Line type="monotone" dataKey="aliceAvg" name="Alice Avg" stroke="#f87171" strokeWidth={3} dot={false} strokeDasharray="5 5" />
+                            <Line type="monotone" dataKey="bobAvg" name="Bob Avg" stroke="#60a5fa" strokeWidth={3} dot={false} strokeDasharray="5 5" />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
