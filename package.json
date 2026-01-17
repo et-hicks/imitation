@@ -6,7 +6,14 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "pretest": "[ -f postcss.config.mjs ] && mv postcss.config.mjs postcss.config.mjs.bak || true",
+    "posttest": "[ -f postcss.config.mjs.bak ] && mv postcss.config.mjs.bak postcss.config.mjs || true",
+    "test": "npm run pretest && vitest; npm run posttest",
+    "test:mock": "npm run pretest && vitest run src/__tests__/api/mock-backend.test.ts; npm run posttest",
+    "test:local": "npm run pretest && RUN_INTEGRATION_TESTS=true vitest run src/__tests__/api/local-backend.test.ts; npm run posttest",
+    "test:remote": "npm run pretest && vitest run src/__tests__/api/remote-backend.test.ts; npm run posttest",
+    "test:all": "npm run pretest && vitest run; npm run posttest"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",
@@ -30,13 +37,19 @@
     "@eslint/eslintrc": "^3",
     "@flydotio/dockerfile": "^0.7.10",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.4.0",
+    "@testing-library/react": "^16.0.0",
     "@types/node": "^20",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.2.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
+    "jsdom": "^24.0.0",
+    "msw": "^2.2.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^1.2.0"
   },
   "dockerfile": {
     "build": "defer",
