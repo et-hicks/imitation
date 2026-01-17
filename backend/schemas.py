@@ -67,3 +67,94 @@ class CommentResponse(BaseModel):
     likes: Optional[int] = None
     replies: Optional[int] = None
     profileUrl: Optional[str] = None
+
+
+# ==================== FLASHCARD SCHEMAS ====================
+
+class DeckBase(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None
+
+
+class DeckCreate(DeckBase):
+    pass
+
+
+class DeckUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    description: Optional[str] = None
+
+
+class DeckResponse(DeckBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+    card_count: int = 0
+    new_count: int = 0       # Red - to study
+    learning_count: int = 0  # Yellow - to review  
+    reviewed_count: int = 0  # Green - studied
+    
+    class Config:
+        from_attributes = True
+
+
+class DeckListResponse(BaseModel):
+    """Simplified deck for list view."""
+    id: int
+    name: str
+    description: Optional[str] = None
+    card_count: int = 0
+    new_count: int = 0
+    learning_count: int = 0
+    reviewed_count: int = 0
+
+
+class CardBase(BaseModel):
+    front: str = Field(..., min_length=1)
+    back: str = Field(..., min_length=1)
+
+
+class CardCreate(CardBase):
+    pass
+
+
+class CardUpdate(BaseModel):
+    front: Optional[str] = Field(None, min_length=1)
+    back: Optional[str] = Field(None, min_length=1)
+
+
+class CardResponse(CardBase):
+    id: int
+    deck_id: int
+    created_at: datetime
+    updated_at: datetime
+    status: str = "new"  # Current study status for user
+    next_review_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class StudyCardResponse(BaseModel):
+    """Card response for study mode."""
+    id: int
+    front: str
+    back: str
+    status: str
+    review_count: int = 0
+
+
+class ReviewRequest(BaseModel):
+    """Request to schedule next review."""
+    remind_value: int = Field(..., ge=1)  # Number
+    remind_unit: str = Field(..., pattern="^(min|hr|day)$")  # Unit
+
+
+class ReviewResponse(BaseModel):
+    """Response after scheduling review."""
+    card_id: int
+    status: str
+    next_review_at: datetime
+    review_count: int
+

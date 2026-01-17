@@ -210,3 +210,96 @@ export interface UserProfile {
     bio: string | null
     profile_url?: string | null
 }
+
+// ==================== FLASHCARD FIXTURES ====================
+
+export interface MockDeck {
+    id: number
+    user_id: number
+    name: string
+    description: string | null
+    card_count: number
+    new_count: number
+    learning_count: number
+    reviewed_count: number
+}
+
+export interface MockCard {
+    id: number
+    deck_id: number
+    front: string
+    back: string
+    status: 'new' | 'learning' | 'reviewed'
+    review_count: number
+}
+
+export const mockDecks: MockDeck[] = [
+    {
+        id: 1,
+        user_id: 1,
+        name: 'JavaScript Basics',
+        description: 'Fundamental concepts of JavaScript programming',
+        card_count: 5,
+        new_count: 2,
+        learning_count: 2,
+        reviewed_count: 1
+    },
+    {
+        id: 2,
+        user_id: 1,
+        name: 'React Hooks',
+        description: 'Common React hooks and their usage patterns',
+        card_count: 4,
+        new_count: 4,
+        learning_count: 0,
+        reviewed_count: 0
+    },
+    {
+        id: 3,
+        user_id: 1,
+        name: 'SQL Queries',
+        description: 'Essential SQL commands and syntax',
+        card_count: 3,
+        new_count: 3,
+        learning_count: 0,
+        reviewed_count: 0
+    }
+]
+
+export const mockCards: MockCard[] = [
+    { id: 1, deck_id: 1, front: 'What is a closure?', back: 'A function with access to outer scope variables.', status: 'reviewed', review_count: 3 },
+    { id: 2, deck_id: 1, front: 'What is hoisting?', back: 'Moving declarations to the top of scope.', status: 'learning', review_count: 1 },
+    { id: 3, deck_id: 1, front: 'let vs var?', back: 'let is block-scoped, var is function-scoped.', status: 'learning', review_count: 2 },
+    { id: 4, deck_id: 1, front: 'What is the event loop?', back: 'Checks call stack and executes task queue callbacks.', status: 'new', review_count: 0 },
+    { id: 5, deck_id: 1, front: 'What is a Promise?', back: 'Object for async operation completion.', status: 'new', review_count: 0 },
+    { id: 6, deck_id: 2, front: 'useState returns?', back: '[state, setState] array', status: 'new', review_count: 0 },
+    { id: 7, deck_id: 2, front: 'When does useEffect run?', back: 'After render, or when deps change.', status: 'new', review_count: 0 },
+]
+
+export interface DeckListItem {
+    id: number
+    name: string
+    description: string | null
+    card_count: number
+    new_count: number
+    learning_count: number
+    reviewed_count: number
+}
+
+export interface CardItem {
+    id: number
+    deck_id: number
+    front: string
+    back: string
+    status: string
+    next_review_at: string | null
+}
+
+export interface StudyCardItem {
+    id: number
+    front: string
+    back: string
+    status: string
+    review_count: number
+}
+

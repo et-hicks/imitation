@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import get_settings
 from database import engine, Base
-from routers import tweets, users
+from routers import tweets, users, decks, cards
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -30,6 +30,8 @@ app.add_middleware(
 # Include routers
 app.include_router(tweets.router)
 app.include_router(users.router)
+app.include_router(decks.router)
+app.include_router(cards.router)
 
 
 @app.get("/")

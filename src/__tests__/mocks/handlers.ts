@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { mockUsers, mockTweets, mockComments } from '../fixtures/test-data'
+import { mockUsers, mockTweets, mockComments, mockDecks, mockCards, MockDeck, MockCard } from '../fixtures/test-data'
 
 // Base URL for API - defaults to local backend
 const API_BASE = process.env.TEST_API_URL || 'https://go-example-bitter-cherry-6166.fly.dev'
@@ -120,5 +120,120 @@ export const handlers = [
             bio: user.bio,
             profile_url: user.profile_url
         })
+    }),
+
+    // ==================== FLASHCARD HANDLERS ====================
+
+    // GET /decks - List user's decks
+    http.get(`${API_BASE}/decks`, ({ request }) => {
+        const authHeader = request.headers.get('Authorization')
+        if (!authHeader) {
+            return HttpResponse.json({ detail: 'Authorization required' }, { status: 401 })
+        }
+        return HttpResponse.json(mockDecks)
+    }),
+
+    // POST /decks - Create deck
+    http.post(`${API_BASE}/decks`, async ({ request }) => {
+        const authHeader = request.headers.get('Authorization')
+        if (!authHeader) {
+            return HttpResponse.json({ detail: 'Authorization required' }, { status: 401 })
+        }
+        const body = await request.json() as { name: string; description: string }
+        return HttpResponse.json({
+            id: mockDecks.length + 1,
+            user_id: 1,
+            name: body.name,
+            description: body.description,
+            card_count: 0,
+            new_count: 0,
+            learning_count: 0,
+            reviewed_count: 0
+        }, { status: 201 })
+    }),
+
+    // GET /decks/:id - Get deck
+    http.get(`${API_BASE}/decks/:deckId`, ({ params, request }) => {
+        const authHeader = request.headers.get('Authorization')
+        if (!authHeader) {
+            return HttpResponse.json({ detail: 'Authorization required' }, { status: 401 })
+        }
+        const deck = mockDecks.find(d => d.id === parseInt(params.deckId as string))
+        if (!deck) {
+            return HttpResponse.json({ detail: 'Deck not found' }, { status: 404 })
+        }
+        return HttpResponse.json(deck)
+    }),
+
+    // GET /decks/:id/cards - List cards
+    http.get(`${API_BASE}/decks/:deckId/cards`, ({ params, request }) => {
+        const authHeader = request.headers.get('Authorization')
+        if (!authHeader) {
+            return HttpResponse.json({ detail: 'Authorization required' }, { status: 401 })
+        }
+        const deckId = parseInt(params.deckId as string)
+        const cards = mockCards.filter(c => c.deck_id === deckId)
+        return HttpResponse.json(cards.map(c => ({
+            ...c,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            next_review_at: null
+        })))
+    }),
+
+    // POST /decks/:id/cards - Create card
+    http.post(`${API_BASE}/decks/:deckId/cards`, async ({ params, request }) => {
+        const authHeader = request.headers.get('Authorization')
+        if (!authHeader) {
+            return HttpResponse.json({ detail: 'Authorization required' }, { status: 401 })
+        }
+        const body = await request.json() as { front: string; back: string }
+        return HttpResponse.json({
+            id: mockCards.length + 1,
+            deck_id: parseInt(params.deckId as string),
+            front: body.front,
+            back: body.back,
+            status: 'new',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            next_review_at: null
+        }, { status: 201 })
+    }),
+
+    // GET /decks/:id/study - Get study cards
+    http.get(`${API_BASE}/decks/:deckId/study`, ({ params, request }) => {
+        const authHeader = request.headers.get('Authorization')
+        if (!authHeader) {
+            return HttpResponse.json({ detail: 'Authorization required' }, { status: 401 })
+        }
+        const deckId = parseInt(params.deckId as string)
+        const dueCards = mockCards.filter(c => c.deck_id === deckId && c.status !== 'reviewed')
+        return HttpResponse.json(dueCards.map(c => ({
+            id: c.id,
+            front: c.front,
+            back: c.back,
+            status: c.status,
+            review_count: c.review_count
+        })))
+    }),
+
+    // POST /cards/:id/review - Review card
+    http.post(`${API_BASE}/cards/:cardId/review`, async ({ params, request }) => {
+        const authHeader = request.headers.get('Authorization')
+        if (!authHeader) {
+            return HttpResponse.json({ detail: 'Authorization required' }, { status: 401 })
+        }
+        const body = await request.json() as { remind_value: number; remind_unit: string }
+        const nextReview = new Date()
+        const multiplier = body.remind_unit === 'day' ? 24 * 60 : body.remind_unit === 'hr' ? 60 : 1
+        nextReview.setMinutes(nextReview.getMinutes() + body.remind_value * multiplier)
+
+        return HttpResponse.json({
+            card_id: parseInt(params.cardId as string),
+            status: 'learning',
+            next_review_at: nextReview.toISOString(),
+            review_count: 1
+        })
     })
 ]
+

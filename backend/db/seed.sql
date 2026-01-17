@@ -38,3 +38,49 @@ INSERT INTO tweets (body, likes, replies, restacks, saves, user_id, is_comment, 
 
 -- Update reply counts to match actual comments
 UPDATE tweets SET replies = (SELECT COUNT(*) FROM tweets t2 WHERE t2.parent_tweet_id = tweets.id);
+
+-- ==================== FLASHCARD SEED DATA ====================
+
+-- Clear existing flashcard data (for repeated runs)
+TRUNCATE study_queue CASCADE;
+TRUNCATE cards CASCADE;
+TRUNCATE decks CASCADE;
+
+-- Reset flashcard sequences
+ALTER SEQUENCE decks_id_seq RESTART WITH 1;
+ALTER SEQUENCE cards_id_seq RESTART WITH 1;
+ALTER SEQUENCE study_queue_id_seq RESTART WITH 1;
+
+-- Insert test decks for user 1 (janedoe)
+INSERT INTO decks (user_id, name, description) VALUES
+    (1, 'JavaScript Basics', 'Fundamental concepts of JavaScript programming'),
+    (1, 'React Hooks', 'Common React hooks and their usage patterns'),
+    (1, 'SQL Queries', 'Essential SQL commands and syntax');
+
+-- Insert test cards for JavaScript Basics deck (id=1)
+INSERT INTO cards (deck_id, front, back) VALUES
+    (1, 'What is a closure?', 'A closure is a function that has access to its outer function''s variables even after the outer function has returned.'),
+    (1, 'What is hoisting?', 'JavaScript''s default behavior of moving declarations to the top of the current scope.'),
+    (1, 'What is the difference between let and var?', 'let is block-scoped while var is function-scoped. let also doesn''t hoist to undefined.'),
+    (1, 'What is the event loop?', 'The event loop continuously checks if the call stack is empty and executes callbacks from the task queue.'),
+    (1, 'What is a Promise?', 'An object representing the eventual completion or failure of an asynchronous operation.');
+
+-- Insert test cards for React Hooks deck (id=2)
+INSERT INTO cards (deck_id, front, back) VALUES
+    (2, 'What does useState return?', 'An array with the current state value and a function to update it: [state, setState]'),
+    (2, 'When does useEffect run?', 'After every render by default, or when dependencies change if a dependency array is provided.'),
+    (2, 'What is useCallback used for?', 'Memoizing callback functions to prevent unnecessary re-renders in child components.'),
+    (2, 'What is the difference between useMemo and useCallback?', 'useMemo memoizes a computed value, useCallback memoizes a function.');
+
+-- Insert test cards for SQL Queries deck (id=3)
+INSERT INTO cards (deck_id, front, back) VALUES
+    (3, 'What does SELECT DISTINCT do?', 'Returns only unique/different values, eliminating duplicate rows from the result set.'),
+    (3, 'What is a JOIN?', 'A clause used to combine rows from two or more tables based on a related column.'),
+    (3, 'What is the difference between WHERE and HAVING?', 'WHERE filters rows before grouping, HAVING filters groups after GROUP BY.');
+
+-- Insert some study progress for testing (mix of statuses)
+INSERT INTO study_queue (card_id, user_id, status, next_review_at, last_reviewed_at, review_count) VALUES
+    (1, 1, 'reviewed', NOW() + INTERVAL '1 day', NOW() - INTERVAL '1 hour', 3),
+    (2, 1, 'learning', NOW() + INTERVAL '30 minutes', NOW() - INTERVAL '15 minutes', 1),
+    (3, 1, 'learning', NOW() - INTERVAL '10 minutes', NOW() - INTERVAL '1 hour', 2);
+
