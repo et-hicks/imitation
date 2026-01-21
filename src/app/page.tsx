@@ -69,6 +69,13 @@ export default function Home() {
         href: "/asteroid",
         status: "stable",
       },
+      {
+        title: "Digital Clock",
+        description: "A clock with digits. No, the other kind of digits.",
+        icon: "🕐",
+        href: "/digital-clock",
+        status: "stable",
+      },
     ];
 
   return (
