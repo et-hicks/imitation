@@ -5,7 +5,11 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/ToastProvider";
 import { BACKEND_URL } from "@/lib/env";
 
-export default function TweetComposer() {
+type TweetComposerProps = {
+  onTweetPosted?: () => void;
+};
+
+export default function TweetComposer({ onTweetPosted }: TweetComposerProps) {
   const [content, setContent] = useState("");
   const [isPosting, setIsPosting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -50,6 +54,7 @@ export default function TweetComposer() {
 
       setContent("");
       showSuccess("Tweet posted successfully!");
+      onTweetPosted?.();
     } catch (error) {
       console.error("Error posting tweet:", error);
       showError("Failed to post tweet. Please try again.");

@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const offset = parseInt(searchParams.get("offset") || "0");
 
   const result = await pool.query(
-    `SELECT t.body, t.likes, t.replies, t.restacks, t.saves,
+    `SELECT t.id, t.body, t.likes, t.replies, t.restacks, t.saves,
             u.username, u.profile_url
      FROM tweets t
      LEFT JOIN users u ON u.id = t.user_id
@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
   );
 
   const tweets = result.rows.map((row) => ({
+    id: row.id,
     body: row.body,
     likes: row.likes,
     replies: row.replies,
