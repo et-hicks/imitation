@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 export default function LoginForm() {
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
@@ -21,10 +21,10 @@ export default function LoginForm() {
     // Intentionally allow empty username here; caller can add validation later
     // Log username to console as requested
     // eslint-disable-next-line no-console
-    console.log(`user ${username} signed in`);
+    console.log(`user ${email} signed in`);
     // Basic example using email/password with Supabase
     const { error } = await supabase.auth.signInWithPassword({
-      email: username,
+      email,
       password,
     });
     if (error) {
@@ -38,19 +38,19 @@ export default function LoginForm() {
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div>
-        <label className="mb-1 block text-sm text-gray-300" htmlFor="username">
-          Username
+        <label className="mb-1 block text-sm text-gray-300" htmlFor="email">
+          Email
         </label>
         <input
-          id="username"
-          name="username"
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value.replace(/\s+/g, ""))}
+          id="email"
+          name="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value.replace(/\s+/g, ""))}
           onKeyDown={preventSpaceKey}
           className="w-full rounded-lg border border-white/20 bg-black/60 px-3 py-2 text-white outline-none placeholder-gray-400 focus:border-white/40"
-          placeholder="Enter username"
-          autoComplete="username"
+          placeholder="Enter email"
+          autoComplete="email"
         />
       </div>
       <div>

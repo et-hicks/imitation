@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 export default function SignupForm() {
   const [profileName, setProfileName] = useState("");
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -20,9 +20,9 @@ export default function SignupForm() {
     }
     setError(null);
     // eslint-disable-next-line no-console
-    console.log("create account:", { profileName, username });
+    console.log("create account:", { profileName, email });
     const { error } = await supabase.auth.signUp({
-      email: username,
+      email,
       password,
       options: {
         data: { full_name: profileName },
@@ -49,14 +49,14 @@ export default function SignupForm() {
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm text-gray-300" htmlFor="username">Username</label>
+        <label className="mb-1 block text-sm text-gray-300" htmlFor="email">Email</label>
         <input
-          id="username"
-          type="text"
+          id="email"
+          type="email"
           className="w-full rounded-lg border border-white/20 bg-black/60 px-3 py-2 text-white outline-none placeholder-gray-400 focus:border-white/40"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="janedoe"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="jane@example.com"
         />
       </div>
       <div>

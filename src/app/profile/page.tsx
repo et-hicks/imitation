@@ -1,76 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/components/AuthProvider";
 
-type TwitterUser = {
-  id: number;
-  username: string;
-  bio?: string | null;
-};
-
 export default function ProfilePage() {
-  const { user } = useAuth();
-  const display = user?.user_metadata?.full_name || user?.email || "User";
-  const [activeTab, setActiveTab] = useState<"twitter" | "other">("twitter");
-  const [twitterUser, setTwitterUser] = useState<TwitterUser | null>(null);
+  const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    if (activeTab === "twitter" && !twitterUser) {
-      fetch("/user/1")
-        .then((res) => res.json())
-        .then((data: TwitterUser) => setTwitterUser(data))
-        .catch(() => setTwitterUser(null));
+    if (user === null && !isAuthenticated) {
+      router.replace("/login");
     }
-  }, [activeTab, twitterUser]);
+  }, [user, isAuthenticated, router]);
+
+  if (!user) {
+    return null;
+  }
+
+  const displayName = user.user_metadata?.full_name || "—";
+  const email = user.email || "—";
 
   return (
     <main className="min-h-[calc(100vh-56px)] bg-black">
       <div className="mx-auto max-w-xl px-4 py-10 text-white">
-        <h1 className="mb-4 text-2xl font-semibold">Hello, this is your profile</h1>
-        <p className="mb-8 text-sm text-white/80">Signed in as {display}</p>
+        <h1 className="mb-8 text-2xl font-semibold">Profile</h1>
 
-        <div className="mb-8 flex border-b border-white/20">
-          <button
-            className={`px-4 py-2 text-sm ${
-              activeTab === "twitter" ? "border-b-2 border-white" : "text-white/60"
-            }`}
-            onClick={() => setActiveTab("twitter")}
-          >
-            twitter
-          </button>
-          <button
-            className={`px-4 py-2 text-sm ${
-              activeTab === "other" ? "border-b-2 border-white" : "text-white/60"
-            }`}
-            onClick={() => setActiveTab("other")}
-          >
-            other information
-          </button>
-        </div>
-
-        {activeTab === "twitter" ? (
-          twitterUser ? (
-            <div className="mb-8">
-              <p className="mb-2">Username: {twitterUser.username}</p>
-              <p className="mb-2">User ID: {twitterUser.id}</p>
-              <p>{twitterUser.bio || "missing bio text, edit here"}</p>
-            </div>
-          ) : (
-            <p className="mb-8">Loading...</p>
-          )
-        ) : (
-          <div className="mb-8">
-            <p>Other information goes here.</p>
+        <div className="mb-8 space-y-4">
+          <div>
+            <p className="text-sm text-white/60">Display name</p>
+            <p className="text-lg">{displayName}</p>
           </div>
-        )}
+          <div>
+            <p className="text-sm text-white/60">Email</p>
+            <p className="text-lg">{email}</p>
+          </div>
+        </div>
 
         <button
           type="button"
           onClick={async () => {
             await supabase.auth.signOut();
-            location.href = "/";
+            router.push("/");
           }}
           className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200"
         >
@@ -80,5 +52,3 @@ export default function ProfilePage() {
     </main>
   );
 }
-
-

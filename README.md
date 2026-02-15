@@ -20,7 +20,7 @@ Migration files live in `db/migrations/` and are numbered sequentially (e.g. `00
 ### Deploy DB updates to Supabase
 
 ```bash
-DATABASE_URL="postgresql://postgres:<password>@db.kaodsutlbtjiffsvmckx.supabase.co:5432/postgres" npm run db:migrate
+DATABASE_URL="postgresql://postgres:<password>@db.dbmxbfeuxflznukpuvnf.supabase.co:5432/postgres" npm run db:migrate
 ```
 
 Replace `<password>` with your Supabase database password. You can also set `DATABASE_URL` as an environment variable instead of inlining it.
@@ -83,3 +83,8 @@ Pushing to `main` triggers a GitHub Actions workflow that deploys to Fly.io.
 ```bash
 fly deploy --remote-only
 ```
+
+
+# Test Accounts
+etcpie
+sGQ:e?~R9G7LLnC
