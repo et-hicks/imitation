@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
 import { mockDecks, mockCards, DeckListItem, CardItem, StudyCardItem } from '../fixtures/test-data'
 
-const API_BASE = process.env.TEST_API_URL || 'https://go-example-bitter-cherry-6166.fly.dev'
+const API_BASE = process.env.TEST_API_URL || 'http://localhost:3000/api'
 const AUTH_HEADER = { Authorization: 'Bearer test-token' }
 
 describe('Flashcard API Tests', () => {

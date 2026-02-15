@@ -1,13 +1,13 @@
 /**
  * Remote Backend Tests
  * 
- * Skeleton for tests that run against a production/staging server.
+ * Tests that run against a production/staging server.
  * These tests are skipped by default and only run when:
- *   - REMOTE_API_URL environment variable is set
+ *   - REMOTE_API_URL environment variable is set (e.g. https://imitation-broken-dawn-9001.fly.dev/api)
  *   - RUN_REMOTE_TESTS=true is set
- * 
- * Run with: REMOTE_API_URL=https://your-api.fly.dev RUN_REMOTE_TESTS=true npm run test:remote
- * 
+ *
+ * Run with: REMOTE_API_URL=https://imitation-broken-dawn-9001.fly.dev/api RUN_REMOTE_TESTS=true npm run test:remote
+ *
  * CAUTION: These tests may create/modify real data!
  */
 

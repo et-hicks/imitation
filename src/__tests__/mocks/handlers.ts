@@ -1,8 +1,8 @@
 import { http, HttpResponse } from 'msw'
-import { mockUsers, mockTweets, mockComments, mockDecks, mockCards, MockDeck, MockCard } from '../fixtures/test-data'
+import { mockUsers, mockTweets, mockComments, mockDecks, mockCards } from '../fixtures/test-data'
 
-// Base URL for API - defaults to local backend
-const API_BASE = process.env.TEST_API_URL || 'https://go-example-bitter-cherry-6166.fly.dev'
+// Base URL for API - matches Next.js API routes
+const API_BASE = process.env.TEST_API_URL || 'http://localhost:3000/api'
 
 export const handlers = [
     // GET /home - Get all tweets
