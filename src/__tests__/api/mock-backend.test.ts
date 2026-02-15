@@ -13,7 +13,7 @@ import { mockUsers, mockTweets, mockComments } from '../fixtures/test-data'
 import type { TweetListItem, TweetDetail, CommentItem, UserProfile } from '../fixtures/test-data'
 
 // Use the same API URL as the MSW handlers
-const API_BASE = 'https://go-example-bitter-cherry-6166.fly.dev'
+const API_BASE = 'http://localhost:3000/api'
 
 describe('Mock Backend API Tests', () => {
     describe('GET /home', () => {
