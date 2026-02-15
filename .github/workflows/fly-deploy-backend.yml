@@ -1,20 +1,23 @@
-# Fly.io deployment for the Next.js frontend (imitation-broken-dawn-9001)
+# Fly.io deployment for the Python backend (imitation-api)
 # See https://fly.io/docs/app-guides/continuous-deployment-with-github-actions/
 
-name: Fly Deploy Frontend
+name: Fly Deploy Backend
 
 on:
   push:
     branches:
       - main
-    paths-ignore:
+    paths:
       - "backend/**"
 
 jobs:
   deploy:
-    name: Deploy frontend
+    name: Deploy backend
     runs-on: ubuntu-latest
-    concurrency: deploy-frontend
+    concurrency: deploy-backend
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
