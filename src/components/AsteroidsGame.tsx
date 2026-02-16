@@ -1,23 +1,56 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as Phaser from 'phaser';
+import { useAuth } from '@/components/AuthProvider';
+import { BACKEND_URL } from '@/lib/env';
+import { useRouter } from 'next/navigation';
 
 type LeaderboardEntry = {
     name: string;
     score: number;
 };
 
+type GlobalScore = {
+    player_name: string;
+    score: number;
+};
+
 const AsteroidsGame = () => {
     const gameRef = useRef<Phaser.Game | null>(null);
-    const [playerName, setPlayerName] = useState('');
     const [showUI, setShowUI] = useState(true);
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+    const [globalScores, setGlobalScores] = useState<GlobalScore[]>([]);
+    const [showGlobalStats, setShowGlobalStats] = useState(false);
     const [lastScore, setLastScore] = useState<number | null>(null);
+    const { isAuthenticated, session, user } = useAuth();
+    const router = useRouter();
 
-    // Refs for callbacks to avoid stale closures
+    const playerName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'ANONYMOUS';
     const playerNameRef = useRef(playerName);
     playerNameRef.current = playerName;
+
+    const fetchGlobalScores = useCallback(async () => {
+        try {
+            const res = await fetch(`${BACKEND_URL}/asteroid-scores`);
+            if (res.ok) setGlobalScores(await res.json());
+        } catch { /* ignore */ }
+    }, []);
+
+    const saveScore = useCallback(async (score: number) => {
+        if (!session?.access_token) return;
+        try {
+            await fetch(`${BACKEND_URL}/asteroid-scores`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ score }),
+            });
+            fetchGlobalScores();
+        } catch { /* ignore */ }
+    }, [session?.access_token, fetchGlobalScores]);
 
     const updateLeaderboard = (score: number) => {
         const entry = { name: playerNameRef.current || 'ANONYMOUS', score };
@@ -30,9 +63,13 @@ const AsteroidsGame = () => {
     const updateLeaderboardRef = useRef(updateLeaderboard);
     updateLeaderboardRef.current = updateLeaderboard;
 
+    const saveScoreRef = useRef(saveScore);
+    saveScoreRef.current = saveScore;
+
     const handleGameOver = (score: number) => {
         setLastScore(score);
         updateLeaderboardRef.current(score);
+        saveScoreRef.current(score);
         setShowUI(true);
     };
     const handleGameOverRef = useRef(handleGameOver);
@@ -43,7 +80,8 @@ const AsteroidsGame = () => {
         if (stored) {
             setLeaderboard(JSON.parse(stored));
         }
-    }, []);
+        fetchGlobalScores();
+    }, [fetchGlobalScores]);
 
     const startGame = () => {
         if (!gameRef.current) return;
@@ -59,160 +97,135 @@ const AsteroidsGame = () => {
         if (gameRef.current) return;
 
         class MainScene extends Phaser.Scene {
-            private ship!: Phaser.GameObjects.Container;
-            private shipGraphics!: Phaser.GameObjects.Graphics;
-            private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-            private bullets!: Phaser.Physics.Arcade.Group;
-            private asteroids!: Phaser.Physics.Arcade.Group;
-            private lastFired: number = 0;
-            private score: number = 0;
-            private scoreText!: Phaser.GameObjects.Text;
-            private gameOver: boolean = false;
+            ship!: Phaser.GameObjects.Container;
+            shipGraphics!: Phaser.GameObjects.Graphics;
+            cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+            bullets!: Phaser.Physics.Arcade.Group;
+            asteroids!: Phaser.Physics.Arcade.Group;
+            lastFired = 0;
+            score = 0;
+            scoreText!: Phaser.GameObjects.Text;
+            gameOver = false;
 
             constructor() {
                 super({ key: 'MainScene' });
             }
 
-            preload() {
-                // No assets to preload, using graphics
-            }
-
-            create(data: { startImmediately?: boolean }) {
+            create(data?: { startImmediately?: boolean }) {
                 this.gameOver = false;
                 this.score = 0;
 
-                // Create Ship
-                this.ship = this.add.container(400, 300);
-                this.shipGraphics = this.add.graphics();
-                this.shipGraphics.lineStyle(2, 0xffffff);
-                this.shipGraphics.strokeTriangle(-10, 10, 10, 10, 0, -15);
-                this.ship.add(this.shipGraphics);
+                const ship = this.add.graphics();
+                ship.lineStyle(2, 0xffffff);
+                ship.strokeTriangle(-10, 10, 10, 10, 0, -15);
+                this.shipGraphics = ship;
 
+                this.ship = this.add.container(400, 300, [ship]);
                 this.physics.world.enable(this.ship);
-                const body = this.ship.body as Phaser.Physics.Arcade.Body;
-                body.setCircle(8, -8, -8); // Smaller circular hitbox
-                body.setDrag(100);
-                body.setAngularDrag(100);
-                body.setMaxVelocity(200);
+                const shipBody = this.ship.body as Phaser.Physics.Arcade.Body;
+                shipBody.setCircle(8, -8, -8);
 
-                // Input
-                if (this.input.keyboard) {
-                    this.cursors = this.input.keyboard.createCursorKeys();
-                }
+                this.cursors = this.input.keyboard!.createCursorKeys();
+                this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-                // Bullets
-                this.bullets = this.physics.add.group({
-                    classType: Phaser.GameObjects.Graphics,
-                    defaultKey: null,
-                    maxSize: 30,
-                    runChildUpdate: true
-                });
-
-                // Asteroids
+                this.bullets = this.physics.add.group({ maxSize: 20 });
                 this.asteroids = this.physics.add.group();
 
-                // Initial Asteroids
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 7; i++) {
                     this.spawnAsteroid();
                 }
 
-                // Score
-                this.scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', color: '#fff' });
+                this.scoreText = this.add.text(16, 16, 'Score: 0', {
+                    fontSize: '18px',
+                    color: '#ffffff'
+                });
 
-                // Collisions
-                this.physics.add.overlap(this.bullets, this.asteroids, this.bulletHitAsteroid, undefined, this);
-                this.physics.add.overlap(this.ship, this.asteroids, this.shipHitAsteroid, undefined, this);
+                this.physics.add.overlap(
+                    this.bullets,
+                    this.asteroids,
+                    this.bulletHitAsteroid as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
+                    undefined,
+                    this
+                );
 
-                // Pause if not starting immediately
-                if (!data || !data.startImmediately) {
-                    this.scene.pause();
+                this.physics.add.overlap(
+                    this.ship,
+                    this.asteroids,
+                    this.shipHitAsteroid as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
+                    undefined,
+                    this
+                );
+
+                if (!data?.startImmediately) {
+                    this.physics.pause();
                 }
             }
 
             update(time: number) {
-                if (this.gameOver) {
-                    return;
-                }
+                if (this.gameOver) return;
 
                 const body = this.ship.body as Phaser.Physics.Arcade.Body;
 
                 if (this.cursors.left.isDown) {
-                    body.setAngularVelocity(-300);
+                    this.ship.angle -= 3;
                 } else if (this.cursors.right.isDown) {
-                    body.setAngularVelocity(300);
-                } else {
-                    body.setAngularVelocity(0);
+                    this.ship.angle += 3;
                 }
 
                 if (this.cursors.up.isDown) {
-                    this.physics.velocityFromRotation(this.ship.rotation - Math.PI / 2, 200, body.acceleration);
+                    const rad = Phaser.Math.DegToRad(this.ship.angle - 90);
+                    body.setAcceleration(Math.cos(rad) * 200, Math.sin(rad) * 200);
                 } else {
                     body.setAcceleration(0);
+                    body.setDrag(50);
                 }
 
-                if (this.cursors.space.isDown && time > this.lastFired) {
-                    this.fireBullet(time);
+                // Fire
+                const spaceKey = this.input.keyboard!.keys[Phaser.Input.Keyboard.KeyCodes.SPACE];
+                if (spaceKey?.isDown && time > this.lastFired + 250) {
+                    const bullet = this.add.graphics();
+                    bullet.fillStyle(0xffffff);
+                    bullet.fillCircle(0, 0, 3);
+
+                    const rad = Phaser.Math.DegToRad(this.ship.angle - 90);
+                    bullet.x = this.ship.x + Math.cos(rad) * 20;
+                    bullet.y = this.ship.y + Math.sin(rad) * 20;
+
+                    this.bullets.add(bullet);
+                    this.physics.world.enable(bullet);
+                    const bulletBody = bullet.body as Phaser.Physics.Arcade.Body;
+                    bulletBody.setVelocity(Math.cos(rad) * 400, Math.sin(rad) * 400);
+                    bulletBody.setCircle(3);
+
+                    this.lastFired = time;
+
+                    this.time.delayedCall(1500, () => {
+                        bullet.setActive(false);
+                        bullet.setVisible(false);
+                    });
                 }
 
-                this.physics.world.wrap(this.ship, 20);
-                this.physics.world.wrap(this.asteroids, 20);
-
-                // Manual bullet wrapping and cleanup
-                this.bullets.children.each((b: Phaser.GameObjects.GameObject) => {
-                    const bullet = b as Phaser.GameObjects.Graphics;
-                    if (bullet.active) {
-                        if (bullet.x < 0 || bullet.x > 800 || bullet.y < 0 || bullet.y > 600) {
-                            bullet.setActive(false);
-                            bullet.setVisible(false);
-                        }
-                    }
-                    return true;
+                // Screen wrapping
+                this.physics.world.wrap(this.ship, 16);
+                this.asteroids.getChildren().forEach(a => {
+                    this.physics.world.wrap(a, 70);
                 });
             }
 
-            fireBullet(time: number) {
-                const bullet = this.bullets.get();
-
-                if (bullet) {
-                    // Initialize bullet graphics if not already done
-                    if (!bullet.getData('isInitialized')) {
-                        // this.physics.world.enable(bullet); // Already enabled by group
-                        bullet.clear();
-                        bullet.fillStyle(0xffffff, 1);
-                        bullet.fillCircle(0, 0, 2);
-                        bullet.setData('isInitialized', true);
-                    }
-
-                    bullet.setActive(true);
-                    bullet.setVisible(true);
-                    bullet.setPosition(this.ship.x, this.ship.y);
-
-                    const velocity = this.physics.velocityFromRotation(this.ship.rotation - Math.PI / 2, 400);
-                    bullet.body.setVelocity(velocity.x, velocity.y);
-
-                    this.lastFired = time + 250;
-                }
-            }
-
-            spawnAsteroid(x?: number, y?: number, sizeType?: 'large' | 'medium' | 'small', vx?: number, vy?: number) {
-                // If x and y are not provided, pick random location
+            spawnAsteroid(x?: number, y?: number, sizeType?: string, vx?: number, vy?: number) {
                 let spawnX = x;
                 let spawnY = y;
 
                 if (spawnX === undefined || spawnY === undefined) {
-                    // Try up to 10 times to find a safe spawn spot
                     for (let i = 0; i < 10; i++) {
                         const testX = Phaser.Math.Between(0, 800);
                         const testY = Phaser.Math.Between(0, 600);
-
                         if (Phaser.Math.Distance.Between(testX, testY, this.ship.x, this.ship.y) > 200) {
                             spawnX = testX;
                             spawnY = testY;
                             break;
                         }
                     }
-
-                    // If we still didn't find a safe spot, just use the last random one or default
                     if (spawnX === undefined || spawnY === undefined) {
                         spawnX = Phaser.Math.Between(0, 800);
                         spawnY = Phaser.Math.Between(0, 600);
@@ -220,25 +233,18 @@ const AsteroidsGame = () => {
                 }
 
                 const asteroid = this.add.graphics();
-
-                // Determine size and color
                 let radius;
                 let color;
                 let type = sizeType;
 
                 if (!type) {
                     const rand = Math.random();
-                    if (rand < 0.2) {
-                        type = 'small';
-                    } else if (rand < 0.5) {
-                        type = 'medium';
-                    } else {
-                        type = 'large';
-                    }
+                    if (rand < 0.2) type = 'small';
+                    else if (rand < 0.5) type = 'medium';
+                    else type = 'large';
                 }
 
                 let speedMultiplier = 1;
-
                 switch (type) {
                     case 'small':
                         radius = Phaser.Math.Between(10, 20);
@@ -261,16 +267,14 @@ const AsteroidsGame = () => {
                 asteroid.setData('sizeType', type);
                 asteroid.lineStyle(2, color);
 
-                // Random polygon shape
                 const points = [];
                 const numPoints = Phaser.Math.Between(5, 10);
                 for (let i = 0; i < numPoints; i++) {
                     const angle = (i / numPoints) * Math.PI * 2;
-                    const r = radius + Phaser.Math.Between(-5, 5); // Reduced variation for smaller asteroids
+                    const r = radius + Phaser.Math.Between(-5, 5);
                     points.push({ x: Math.cos(angle) * r, y: Math.sin(angle) * r });
                 }
-                points.push(points[0]); // Close loop
-
+                points.push(points[0]);
                 asteroid.strokePoints(points);
                 asteroid.x = spawnX;
                 asteroid.y = spawnY;
@@ -280,18 +284,14 @@ const AsteroidsGame = () => {
                 const body = asteroid.body as Phaser.Physics.Arcade.Body;
 
                 if (vx !== undefined && vy !== undefined) {
-                    // Use provided velocity (already scaled)
                     body.setVelocity(vx * speedMultiplier, vy * speedMultiplier);
                 } else {
                     const baseSpeed = Phaser.Math.Between(50, 100);
                     const speed = baseSpeed * speedMultiplier;
-
-                    // Random velocity vector with magnitude = speed
                     const angle = Math.random() * Math.PI * 2;
                     body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
                 }
 
-                // Reduced hitbox (75% of visual size)
                 const hitboxRadius = radius * 0.75;
                 const offset = radius - hitboxRadius;
                 body.setCircle(hitboxRadius, offset, offset);
@@ -313,39 +313,18 @@ const AsteroidsGame = () => {
                 this.score += 10;
                 this.scoreText.setText('Score: ' + this.score);
 
-                // Splitting logic
                 if (sizeType === 'large' || sizeType === 'medium') {
                     const nextSize = sizeType === 'large' ? 'medium' : 'small';
-
-                    // Calculate orthogonal directions
-                    // Current angle
                     const angle = Math.atan2(v.y, v.x);
                     const speed = v.length();
-
-                    // Orthogonal angles (+90 and -90 degrees)
                     const angle1 = angle + Math.PI / 2;
                     const angle2 = angle - Math.PI / 2;
+                    const off = sizeType === 'large' ? 40 : 25;
 
-                    // Offset distance (radius of current asteroid approx)
-                    const offset = sizeType === 'large' ? 40 : 25;
-
-                    // Calculate new positions
-                    const x1 = x + Math.cos(angle1) * offset;
-                    const y1 = y + Math.sin(angle1) * offset;
-                    const x2 = x + Math.cos(angle2) * offset;
-                    const y2 = y + Math.sin(angle2) * offset;
-
-                    // Calculate new base velocities (will be multiplied by speedMultiplier in spawnAsteroid)
-                    const vx1 = Math.cos(angle1) * speed;
-                    const vy1 = Math.sin(angle1) * speed;
-                    const vx2 = Math.cos(angle2) * speed;
-                    const vy2 = Math.sin(angle2) * speed;
-
-                    this.spawnAsteroid(x1, y1, nextSize, vx1, vy1);
-                    this.spawnAsteroid(x2, y2, nextSize, vx2, vy2);
+                    this.spawnAsteroid(x + Math.cos(angle1) * off, y + Math.sin(angle1) * off, nextSize, Math.cos(angle1) * speed, Math.sin(angle1) * speed);
+                    this.spawnAsteroid(x + Math.cos(angle2) * off, y + Math.sin(angle2) * off, nextSize, Math.cos(angle2) * speed, Math.sin(angle2) * speed);
                 }
 
-                // Spawn new random asteroids if count gets too low to keep game going
                 if (this.asteroids.countActive() < 5) {
                     this.spawnAsteroid();
                 }
@@ -358,7 +337,6 @@ const AsteroidsGame = () => {
                 this.shipGraphics.strokeTriangle(-10, 10, 10, 10, 0, -15);
                 this.gameOver = true;
 
-                // Notify React
                 const onGameOver = this.registry.get('onGameOver');
                 if (onGameOver) onGameOver(this.score);
             }
@@ -371,10 +349,7 @@ const AsteroidsGame = () => {
             parent: 'phaser-game',
             physics: {
                 default: 'arcade',
-                arcade: {
-                    gravity: { x: 0, y: 0 }, // No gravity in space
-                    debug: false
-                }
+                arcade: { gravity: { x: 0, y: 0 }, debug: false }
             },
             scene: MainScene,
             backgroundColor: '#000000'
@@ -406,23 +381,52 @@ const AsteroidsGame = () => {
                     )}
 
                     <div className="flex flex-col gap-4 mb-8 w-64">
-                        <input
-                            type="text"
-                            placeholder="ENTER NAME"
-                            className="bg-transparent border-2 border-white p-2 text-center text-xl uppercase focus:outline-none focus:border-green-400"
-                            value={playerName}
-                            onChange={(e) => setPlayerName(e.target.value.toUpperCase())}
-                        />
-                        <button
-                            onClick={startGame}
-                            className="bg-white text-black font-bold py-2 px-4 hover:bg-gray-200 transition-colors text-xl"
-                        >
-                            {lastScore !== null ? 'PLAY AGAIN' : 'START GAME'}
-                        </button>
+                        {isAuthenticated ? (
+                            <>
+                                <p className="text-center text-lg text-green-400">{playerName.toUpperCase()}</p>
+                                <button
+                                    onClick={startGame}
+                                    className="bg-white text-black font-bold py-2 px-4 hover:bg-gray-200 transition-colors text-xl"
+                                >
+                                    {lastScore !== null ? 'PLAY AGAIN' : 'PLAY GAME'}
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                onClick={() => router.push('/login')}
+                                className="bg-white text-black font-bold py-2 px-4 hover:bg-gray-200 transition-colors text-xl"
+                            >
+                                LOGIN TO PLAY
+                            </button>
+                        )}
                     </div>
 
-                    {leaderboard.length > 0 && (
-                        <div className="mt-8 border-2 border-white p-6 rounded-lg bg-black/50">
+                    <button
+                        onClick={() => setShowGlobalStats(!showGlobalStats)}
+                        className="mb-4 border-2 border-white px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                    >
+                        {showGlobalStats ? 'HIDE STATS' : 'STATS'}
+                    </button>
+
+                    {showGlobalStats && globalScores.length > 0 && (
+                        <div className="mt-2 border-2 border-white p-6 rounded-lg bg-black/50">
+                            <h3 className="text-2xl font-bold mb-4 text-center border-b border-white pb-2">GLOBAL LEADERBOARD</h3>
+                            <table className="w-full text-left">
+                                <tbody>
+                                    {globalScores.map((entry, i) => (
+                                        <tr key={i} className="text-lg">
+                                            <td className="pr-8 py-1 text-gray-400">#{i + 1}</td>
+                                            <td className="pr-8 py-1 font-mono">{entry.player_name}</td>
+                                            <td className="py-1 text-right font-mono text-green-400">{entry.score}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    {!showGlobalStats && leaderboard.length > 0 && (
+                        <div className="mt-2 border-2 border-white p-6 rounded-lg bg-black/50">
                             <h3 className="text-2xl font-bold mb-4 text-center border-b border-white pb-2">TOP COMMANDERS</h3>
                             <table className="w-full text-left">
                                 <tbody>

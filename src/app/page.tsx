@@ -21,13 +21,6 @@ export default function Home() {
     status: Status;
   }> = [
       {
-        title: "BioChem Project",
-        description: "Because school is important",
-        icon: "👥",
-        href: "/dna",
-        status: "static",
-      },
-      {
         title: "Twitter",
         description: "A clone of Twitter, because everyone seems to do it these days",
         icon: "💬",
@@ -74,6 +67,13 @@ export default function Home() {
         description: "A clock with digits. No, the other kind of digits.",
         icon: "🕐",
         href: "/digital-clock",
+        status: "stable",
+      },
+      {
+        title: "Flashcards",
+        description: "Spaced repetition study cards",
+        icon: "🎴",
+        href: "/flashcards",
         status: "stable",
       },
     ];

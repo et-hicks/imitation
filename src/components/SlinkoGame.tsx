@@ -18,6 +18,16 @@ enum PegType {
 
 const CURRENT_PEG_TYPE: PegType = PegType.TRIANGLE_ROTATING;
 
+// Shared board constants used by both init and dropBall
+const BOARD_ROWS = 11;
+const SPACING_X = 50;
+const SPACING_Y = 50;
+const START_Y = 100;
+const BOTTOM_CLEARANCE = 100;
+const BOARD_WIDTH = (BOARD_ROWS - 1) * SPACING_X + 60;
+const BOARD_HEIGHT = START_Y + (BOARD_ROWS - 1) * SPACING_Y + BOTTOM_CLEARANCE;
+const BOARD_CENTER = BOARD_WIDTH / 2;
+
 export function SlinkoGame() {
     const sceneRef = useRef<HTMLDivElement>(null);
     const [score, setScore] = useState(0);
@@ -28,6 +38,8 @@ export function SlinkoGame() {
     // Initial setup
     useEffect(() => {
         if (!sceneRef.current) return;
+        // Prevent double-initialization (React Strict Mode runs effects twice)
+        if (sceneRef.current.querySelector('canvas')) return;
 
         let cleanup: (() => void) | undefined;
 
@@ -46,27 +58,13 @@ export function SlinkoGame() {
             const engine = Engine.create();
             engineRef.current = engine;
 
-            // Reduce height to ensure it fits in viewport comfortably
-            const rows = 11;
-            const spacingX = 50;
-            const spacingY = 50;
-
-            // Dynamic width calculation:
-            // Width = (LastRowWidth) + Padding
-            // LastRowWidth = (rows - 1) * spacingX
-            // Padding = 30px * 2 = 60px
-            const width = (rows - 1) * spacingX + 60;
-
-            // Dynamic height calculation:
-            // Height = StartY + HeightOfTriangle + BottomClearance
-            // HeightOfTriangle = (rows - 1) * spacingY
-            // StartY = 100
-            // BottomClearance = 250 (to satisfy > 200px req)
-            const startY = 100;
-            const bottomClearance = 100;
-            const height = startY + (rows - 1) * spacingY + bottomClearance;
-
-            const center = width / 2;
+            const rows = BOARD_ROWS;
+            const spacingX = SPACING_X;
+            const spacingY = SPACING_Y;
+            const width = BOARD_WIDTH;
+            const height = BOARD_HEIGHT;
+            const startY = START_Y;
+            const center = BOARD_CENTER;
 
             const render = Render.create({
                 element: sceneRef.current!,
@@ -248,15 +246,8 @@ export function SlinkoGame() {
         if (!engineRef.current || !MatterRef.current) return;
         const Matter = MatterRef.current;
 
-        // Dynamic clamp based on rows = 10 -> width = 510
-        // Safe to recalculate or hardcode since rows is constant in this scope
-        const rows = 10;
-        const spacingX = 50;
-        const width = (rows - 1) * spacingX + 60;
-
-        // Use the current preview X for the drop
-        // Clamp roughly between walls (20px margin safely)
-        const dropX = Math.max(20, Math.min(width - 20, previewX));
+        // Clamp within walls (20px margin)
+        const dropX = Math.max(20, Math.min(BOARD_WIDTH - 20, previewX));
 
         const ball = Matter.Bodies.circle(dropX, 20, 8, {
             restitution: 0.9,

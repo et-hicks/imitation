@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Deck, Card } from "@/app/flashcards/page";
+import type { Deck } from "@/app/flashcards/page";
 import type { Session } from "@supabase/supabase-js";
 import { BACKEND_URL } from "@/lib/env";
 import FlashCard from "./FlashCard";
@@ -10,6 +10,8 @@ type StudyModeProps = {
     deck: Deck;
     session: Session | null;
     onExit: () => void;
+    studyAll?: boolean;
+    onStartStudyAll?: () => void;
 };
 
 type StudyCard = {
@@ -20,7 +22,7 @@ type StudyCard = {
     review_count: number;
 };
 
-export default function StudyMode({ deck, session, onExit }: StudyModeProps) {
+export default function StudyMode({ deck, session, onExit, studyAll, onStartStudyAll }: StudyModeProps) {
     const [cards, setCards] = useState<StudyCard[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
@@ -34,7 +36,10 @@ export default function StudyMode({ deck, session, onExit }: StudyModeProps) {
             if (!session?.access_token) return;
             setLoading(true);
             try {
-                const res = await fetch(`${BACKEND_URL}/decks/${deck.id}/study?limit=20`, {
+                const endpoint = studyAll
+                    ? `${BACKEND_URL}/decks/${deck.id}/study-all`
+                    : `${BACKEND_URL}/decks/${deck.id}/study?limit=20`;
+                const res = await fetch(endpoint, {
                     headers: { Authorization: `Bearer ${session.access_token}` },
                 });
                 if (res.ok) {
@@ -47,7 +52,7 @@ export default function StudyMode({ deck, session, onExit }: StudyModeProps) {
             }
         };
         fetchStudyCards();
-    }, [deck.id, session?.access_token]);
+    }, [deck.id, session?.access_token, studyAll]);
 
     const currentCard = cards[currentIndex];
     const totalCards = cards.length;
@@ -94,12 +99,22 @@ export default function StudyMode({ deck, session, onExit }: StudyModeProps) {
             <div className="text-center py-12">
                 <h2 className="text-xl font-semibold mb-4">No cards due!</h2>
                 <p className="text-white/60 mb-6">All caught up. Check back later.</p>
-                <button
-                    onClick={onExit}
-                    className="bg-white text-black px-6 py-2 rounded-lg font-medium hover:bg-gray-200"
-                >
-                    Back to Deck
-                </button>
+                <div className="flex justify-center gap-3">
+                    <button
+                        onClick={onExit}
+                        className="border border-white/20 text-white/70 px-6 py-2 rounded-lg font-medium hover:bg-white/5 transition"
+                    >
+                        Back to Deck
+                    </button>
+                    {!studyAll && onStartStudyAll && (
+                        <button
+                            onClick={onStartStudyAll}
+                            className="bg-sky-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-sky-500 transition"
+                        >
+                            Study All
+                        </button>
+                    )}
+                </div>
             </div>
         );
     }
@@ -107,13 +122,13 @@ export default function StudyMode({ deck, session, onExit }: StudyModeProps) {
     if (isComplete) {
         return (
             <div className="text-center py-12">
-                <h2 className="text-xl font-semibold mb-4">🎉 Session Complete!</h2>
+                <h2 className="text-xl font-semibold mb-4">Session Complete!</h2>
                 <p className="text-white/60 mb-6">
                     You reviewed {totalCards} card{totalCards !== 1 ? "s" : ""}.
                 </p>
                 <button
                     onClick={onExit}
-                    className="bg-white text-black px-6 py-2 rounded-lg font-medium hover:bg-gray-200"
+                    className="bg-sky-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-sky-500 transition"
                 >
                     Back to Deck
                 </button>
@@ -127,14 +142,23 @@ export default function StudyMode({ deck, session, onExit }: StudyModeProps) {
             <div className="flex items-center justify-between mb-6">
                 <button
                     onClick={onExit}
-                    className="text-white/60 hover:text-white text-sm"
+                    className="text-white/60 hover:text-white text-sm transition"
                 >
-                    ← Exit
+                    Exit
                 </button>
-                <div className="text-lg font-medium">
-                    Study {currentIndex + 1}/{totalCards}
+                <div className="text-sm font-medium text-white/60">
+                    {currentIndex + 1} / {totalCards}
+                    {studyAll && <span className="ml-2 text-sky-400">(all)</span>}
                 </div>
-                <div className="w-12" /> {/* Spacer */}
+                <div className="w-12" />
+            </div>
+
+            {/* Progress bar */}
+            <div className="w-full h-1 bg-white/10 rounded-full mb-8 overflow-hidden">
+                <div
+                    className="h-full bg-sky-500 transition-all duration-300 rounded-full"
+                    style={{ width: `${((currentIndex) / totalCards) * 100}%` }}
+                />
             </div>
 
             {/* Flashcard */}
@@ -145,37 +169,21 @@ export default function StudyMode({ deck, session, onExit }: StudyModeProps) {
                 onFlip={() => setIsFlipped(!isFlipped)}
             />
 
-            {/* Navigation dots */}
-            <div className="flex justify-center gap-2 my-6">
-                {cards.slice(0, Math.min(10, totalCards)).map((_, idx) => (
-                    <div
-                        key={idx}
-                        className={`w-3 h-3 rounded-full border ${idx === currentIndex
-                                ? "bg-white border-white"
-                                : idx < currentIndex
-                                    ? "bg-green-500 border-green-500"
-                                    : "border-white/30"
-                            }`}
-                    />
-                ))}
-                {totalCards > 10 && <span className="text-white/40">...</span>}
-            </div>
-
             {/* Remind Me Controls */}
-            <div className="flex items-center justify-center gap-4">
-                <span className="text-white/60">remind me:</span>
+            <div className="flex items-center justify-center gap-4 mt-8">
+                <span className="text-white/40 text-sm">remind me in</span>
                 <input
                     type="number"
                     min={1}
                     max={999}
                     value={remindValue}
                     onChange={(e) => setRemindValue(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-16 bg-black border border-white/30 rounded px-3 py-2 text-center focus:outline-none focus:border-white"
+                    className="w-16 bg-black border border-white/20 rounded-lg px-3 py-2 text-center text-sm focus:outline-none focus:border-sky-500/60"
                 />
                 <select
                     value={remindUnit}
                     onChange={(e) => setRemindUnit(e.target.value as "min" | "hr" | "day")}
-                    className="bg-black border border-white/30 rounded px-3 py-2 focus:outline-none focus:border-white"
+                    className="bg-black border border-white/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500/60"
                 >
                     <option value="min">min</option>
                     <option value="hr">hr</option>
@@ -184,9 +192,9 @@ export default function StudyMode({ deck, session, onExit }: StudyModeProps) {
                 <button
                     onClick={handleRemindMe}
                     disabled={submitting}
-                    className="bg-white text-black px-4 py-2 rounded font-medium hover:bg-gray-200 disabled:opacity-50"
+                    className="bg-sky-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-sky-500 disabled:opacity-50 transition"
                 >
-                    {submitting ? "..." : "Next →"}
+                    {submitting ? "..." : "Next"}
                 </button>
             </div>
         </div>

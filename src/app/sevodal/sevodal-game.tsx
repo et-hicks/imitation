@@ -1,8 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "@/components/AuthProvider";
+import { BACKEND_URL } from "@/lib/env";
 
 import { DEFAULT_WORD_LENGTH, WORD_LISTS } from "./word-lists";
+
+type SevodalStat = {
+  word_length: number;
+  total_games: number;
+  wins: number;
+  avg_guesses: string | null;
+};
 
 const ROWS = 7;
 const LENGTH_OPTIONS = [3, 4, 5, 6, 7] as const;
@@ -49,6 +58,7 @@ const statusToEmoji = (status: Status) => {
 };
 
 export default function SevodalGame() {
+  const { session } = useAuth();
   const [wordLength, setWordLength] = useState(DEFAULT_WORD_LENGTH);
   const [solution, setSolution] = useState(() =>
     getRandomWord(DEFAULT_WORD_LENGTH)
@@ -67,8 +77,42 @@ export default function SevodalGame() {
   const [shakingRow, setShakingRow] = useState<number | null>(null);
   const [didWin, setDidWin] = useState(false);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
+  const [stats, setStats] = useState<SevodalStat[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const shakeTimeoutRef = useRef<number | null>(null);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/sevodal`);
+      if (res.ok) setStats(await res.json());
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { fetchStats(); }, [fetchStats]);
+
+  const saveGameResult = useCallback(async (
+    wl: number, sol: string, guessBoard: string[][], statusGrid: Status[][], won: boolean, guessCount: number
+  ) => {
+    if (!session?.access_token) return;
+    try {
+      await fetch(`${BACKEND_URL}/sevodal`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          word_length: wl,
+          solution: sol,
+          guesses: guessBoard.slice(0, guessCount).map(r => r.join("")),
+          statuses: statusGrid.slice(0, guessCount),
+          did_win: won,
+          num_guesses: guessCount,
+        }),
+      });
+      fetchStats();
+    } catch { /* ignore */ }
+  }, [session?.access_token, fetchStats]);
 
   const keyboardRows = useMemo(
     () => [
@@ -159,6 +203,7 @@ export default function SevodalGame() {
       setDidWin(true);
       setShareMessage(null);
       setGameOver(true);
+      saveGameResult(wordLength, solution, board, newStatuses, true, activeRow + 1);
       return;
     }
 
@@ -167,6 +212,7 @@ export default function SevodalGame() {
       setDidWin(false);
       setShareMessage(null);
       setGameOver(true);
+      saveGameResult(wordLength, solution, board, newStatuses, false, ROWS);
       return;
     }
 
@@ -308,8 +354,27 @@ export default function SevodalGame() {
     }
   }, [buildShareText]);
 
+  const statsPanel = stats.length > 0 ? (
+    <div className="w-full lg:w-64 space-y-3">
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-white/60">Rankings</h2>
+      {stats.map((s) => (
+        <div key={s.word_length} className="rounded-xl border border-white/10 bg-white/5 p-3">
+          <div className="text-xs text-white/40 mb-1">{s.word_length} letters</div>
+          <div className="flex justify-between text-sm">
+            <span>{s.total_games} games</span>
+            <span className="text-green-400">{s.wins > 0 ? Math.round((s.wins / s.total_games) * 100) : 0}% win</span>
+          </div>
+          {s.avg_guesses && (
+            <div className="text-xs text-white/50 mt-1">avg {s.avg_guesses} guesses</div>
+          )}
+        </div>
+      ))}
+    </div>
+  ) : null;
+
   return (
-    <main className="min-h-[calc(100vh-56px)] bg-black flex flex-col items-center justify-center text-white gap-8 p-4">
+    <main className="min-h-[calc(100vh-56px)] bg-black flex flex-col lg:flex-row items-start justify-center text-white gap-8 p-4">
+      <div className="flex flex-col items-center justify-center gap-8 flex-1">
       <div className="text-center space-y-2">
         <h1 className="text-white text-4xl font-semibold">sevodal</h1>
         <p className="text-sm text-gray-300">{gameInstructions}</p>
@@ -422,6 +487,8 @@ export default function SevodalGame() {
           </div>
         </>
       )}
+      </div>
+      {statsPanel}
     </main>
   );
 }

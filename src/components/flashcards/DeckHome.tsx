@@ -9,10 +9,11 @@ type DeckHomeProps = {
     deck: Deck;
     session: Session | null;
     onStartStudy: () => void;
+    onStartStudyAll: () => void;
     onRefresh: () => void;
 };
 
-export default function DeckHome({ deck, session, onStartStudy, onRefresh }: DeckHomeProps) {
+export default function DeckHome({ deck, session, onStartStudy, onStartStudyAll, onRefresh }: DeckHomeProps) {
     const [cards, setCards] = useState<Card[]>([]);
     const [showAddCard, setShowAddCard] = useState(false);
     const [newFront, setNewFront] = useState("");
@@ -80,28 +81,42 @@ export default function DeckHome({ deck, session, onStartStudy, onRefresh }: Dec
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className="bg-white/5 rounded-xl p-4 text-center border border-white/10">
-                    <div className="text-3xl font-bold text-red-400">{deck.new_count}</div>
-                    <div className="text-xs text-white/60 mt-1">To Study</div>
+                    <div className="text-3xl font-bold text-blue-400">{deck.new_count}</div>
+                    <div className="text-xs text-white/60 mt-1">New</div>
                 </div>
                 <div className="bg-white/5 rounded-xl p-4 text-center border border-white/10">
-                    <div className="text-3xl font-bold text-yellow-400">{deck.learning_count}</div>
-                    <div className="text-xs text-white/60 mt-1">To Review</div>
+                    <div className="text-3xl font-bold text-orange-400">{deck.learning_count}</div>
+                    <div className="text-xs text-white/60 mt-1">Due</div>
                 </div>
                 <div className="bg-white/5 rounded-xl p-4 text-center border border-white/10">
                     <div className="text-3xl font-bold text-green-400">{deck.reviewed_count}</div>
-                    <div className="text-xs text-white/60 mt-1">Studied</div>
+                    <div className="text-xs text-white/60 mt-1">Done</div>
                 </div>
             </div>
 
-            {/* Start Study Button */}
-            {dueCards > 0 && (
-                <button
-                    onClick={onStartStudy}
-                    className="w-full bg-white text-black font-medium py-3 rounded-lg mb-8 hover:bg-gray-200 transition"
-                >
-                    Start Studying ({dueCards} cards due)
-                </button>
-            )}
+            {/* Study Buttons */}
+            <div className="flex gap-3 mb-8">
+                {dueCards > 0 ? (
+                    <button
+                        onClick={onStartStudy}
+                        className="flex-1 bg-sky-600 text-white font-medium py-3 rounded-lg hover:bg-sky-500 transition"
+                    >
+                        Study Now ({dueCards} due)
+                    </button>
+                ) : (
+                    <div className="flex-1 text-center py-3 rounded-lg bg-white/5 border border-white/10 text-white/40 text-sm">
+                        All caught up!
+                    </div>
+                )}
+                {totalCards > 0 && (
+                    <button
+                        onClick={onStartStudyAll}
+                        className="px-6 py-3 rounded-lg border border-white/20 text-white/70 hover:text-white hover:bg-white/5 transition font-medium"
+                    >
+                        Study All
+                    </button>
+                )}
+            </div>
 
             {/* Cards List */}
             <div className="border border-white/10 rounded-xl">
@@ -109,7 +124,7 @@ export default function DeckHome({ deck, session, onStartStudy, onRefresh }: Dec
                     <span className="text-sm text-white/60">{totalCards} cards</span>
                     <button
                         onClick={() => setShowAddCard(true)}
-                        className="text-sm text-white/60 hover:text-white"
+                        className="text-sm text-sky-400 hover:text-sky-300 transition"
                     >
                         + Add Card
                     </button>
@@ -122,25 +137,26 @@ export default function DeckHome({ deck, session, onStartStudy, onRefresh }: Dec
                             placeholder="Front (question)"
                             value={newFront}
                             onChange={(e) => setNewFront(e.target.value)}
-                            className="w-full bg-black border border-white/20 rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:border-white/40"
+                            autoFocus
+                            className="w-full bg-black border border-white/20 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-sky-500/60"
                         />
                         <input
                             type="text"
                             placeholder="Back (answer)"
                             value={newBack}
                             onChange={(e) => setNewBack(e.target.value)}
-                            className="w-full bg-black border border-white/20 rounded px-3 py-2 text-sm mb-3 focus:outline-none focus:border-white/40"
+                            className="w-full bg-black border border-white/20 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-sky-500/60"
                         />
                         <div className="flex gap-2">
                             <button
                                 onClick={handleAddCard}
-                                className="flex-1 bg-white text-black rounded py-2 text-sm font-medium hover:bg-gray-200"
+                                className="flex-1 bg-sky-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-sky-500 transition"
                             >
                                 Add Card
                             </button>
                             <button
                                 onClick={() => setShowAddCard(false)}
-                                className="flex-1 border border-white/20 rounded py-2 text-sm hover:bg-white/10"
+                                className="flex-1 border border-white/20 rounded-lg py-2 text-sm hover:bg-white/10 transition"
                             >
                                 Cancel
                             </button>
@@ -164,9 +180,9 @@ export default function DeckHome({ deck, session, onStartStudy, onRefresh }: Dec
                                 </div>
                                 <span
                                     className={`text-xs px-2 py-1 rounded ${card.status === "new"
-                                            ? "bg-red-500/20 text-red-400"
+                                            ? "bg-blue-500/20 text-blue-400"
                                             : card.status === "learning"
-                                                ? "bg-yellow-500/20 text-yellow-400"
+                                                ? "bg-orange-500/20 text-orange-400"
                                                 : "bg-green-500/20 text-green-400"
                                         }`}
                                 >

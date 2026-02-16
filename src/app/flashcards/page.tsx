@@ -31,6 +31,7 @@ export default function FlashcardsPage() {
     const [decks, setDecks] = useState<Deck[]>([]);
     const [activeDeckId, setActiveDeckId] = useState<number | null>(null);
     const [isStudying, setIsStudying] = useState(false);
+    const [isStudyingAll, setIsStudyingAll] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const fetchDecks = useCallback(async () => {
@@ -82,6 +83,11 @@ export default function FlashcardsPage() {
         }
     };
 
+    const handleStartStudyAll = () => {
+        setIsStudyingAll(true);
+        setIsStudying(true);
+    };
+
     const activeDeck = decks.find((d) => d.id === activeDeckId) || null;
 
     if (!isAuthenticated) {
@@ -104,6 +110,7 @@ export default function FlashcardsPage() {
                 onSelectDeck={(id) => {
                     setActiveDeckId(id);
                     setIsStudying(false);
+                    setIsStudyingAll(false);
                 }}
                 onCreateDeck={handleCreateDeck}
                 loading={loading}
@@ -116,16 +123,23 @@ export default function FlashcardsPage() {
                         <StudyMode
                             deck={activeDeck}
                             session={session}
+                            studyAll={isStudyingAll}
                             onExit={() => {
                                 setIsStudying(false);
+                                setIsStudyingAll(false);
                                 fetchDecks();
                             }}
+                            onStartStudyAll={handleStartStudyAll}
                         />
                     ) : (
                         <DeckHome
                             deck={activeDeck}
                             session={session}
-                            onStartStudy={() => setIsStudying(true)}
+                            onStartStudy={() => {
+                                setIsStudyingAll(false);
+                                setIsStudying(true);
+                            }}
+                            onStartStudyAll={handleStartStudyAll}
                             onRefresh={fetchDecks}
                         />
                     )

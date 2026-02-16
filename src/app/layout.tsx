@@ -70,7 +70,7 @@ export default function RootLayout({
               <div className="flex items-center gap-8">
                 <Link href="/" className="hover:text-gray-300">Home</Link>
                 <Link href="/careers" className="hover:text-gray-300">Careers</Link>
-                <Link href="/dna" className="hover:text-gray-300">DNA</Link>
+                <Link href="/flashcards" className="hover:text-gray-300">Flashcards</Link>
                 {/* <Link href="/about" className="hover:text-gray-300">About</Link> */}
                 {/* <Solutions /> */}
               </div>
