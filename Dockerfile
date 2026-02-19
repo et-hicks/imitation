@@ -1,7 +1,7 @@
 FROM node:lts-alpine AS base
 
-ENV NEXT_PUBLIC_SUPABASE_URL=https://kaodsutlbtjiffsvmckx.supabase.co
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imthb2RzdXRsYnRqaWZmc3ZtY2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3NjExNzQsImV4cCI6MjA3MDMzNzE3NH0.v0hDI8nT54mEUbdqzhlVfdgIeJXcjWq-SAyPuP87jNc
+ENV NEXT_PUBLIC_SUPABASE_URL=https://dbmxbfeuxflznukpuvnf.supabase.co
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_MFTgfJ7nuchS4tQmegpmRA_TRslOmk8
 
 
 # Stage 1: Install dependencies
