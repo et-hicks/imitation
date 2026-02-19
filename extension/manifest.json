@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "Imitation",
-  "version": "0.2.0",
-  "description": "Add flashcards from any webpage",
+  "version": "0.3.0",
+  "description": "Add flashcards from any webpage — highlight, study, and review",
   "icons": {
     "48": "icons/icon-48.png",
     "96": "icons/icon-96.png"
@@ -10,6 +10,9 @@
   "permissions": [
     "activeTab",
     "storage",
+    "contextMenus",
+    "notifications",
+    "alarms",
     "https://dbmxbfeuxflznukpuvnf.supabase.co/*",
     "https://imitation-broken-dawn-9001.fly.dev/*"
   ],
@@ -17,6 +20,11 @@
     "default_icon": "icons/icon-48.png",
     "default_title": "Imitation",
     "default_popup": "popup/popup.html"
+  },
+  "sidebar_action": {
+    "default_title": "Imitation",
+    "default_panel": "sidebar/sidebar.html",
+    "default_icon": "icons/icon-48.png"
   },
   "background": {
     "scripts": ["background.js"]
@@ -27,5 +35,13 @@
       "js": ["content.js"],
       "run_at": "document_idle"
     }
-  ]
+  ],
+  "commands": {
+    "quick-add": {
+      "suggested_key": {
+        "default": "Alt+Shift+F"
+      },
+      "description": "Quick-add a flashcard from the current page"
+    }
+  }
 }

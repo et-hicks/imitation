@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a0a0a; color: #fff; padding: 16px; min-height: 100vh;
+    }
+    .hidden { display: none !important; }
+    h1 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+    h2 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .subtitle { color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 16px; }
+
+    .tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .tab-btn {
+      flex: 1; padding: 10px; background: none; border: none; border-bottom: 2px solid transparent;
+      color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; }
+    .tab-btn:hover { color: rgba(255,255,255,0.8); }
+
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 4px; }
+    input, textarea, select {
+      width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13px; outline: none;
+      font-family: inherit; resize: vertical;
+    }
+    input:focus, textarea:focus, select:focus { border-color: rgba(56,189,248,0.5); }
+    input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3); }
+    select { cursor: pointer; appearance: none; padding-right: 28px; }
+    select option { background: #1a1a1a; color: #fff; }
+
+    .btn-primary {
+      width: 100%; padding: 10px; background: #0284c7; color: #fff; border: none;
+      border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;
+    }
+    .btn-primary:hover { background: #0369a1; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-text {
+      background: none; border: none; color: rgba(255,255,255,0.4);
+      font-size: 12px; cursor: pointer; padding: 4px 8px; border-radius: 4px;
+    }
+    .btn-text:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.05); }
+
+    .error { color: #f87171; font-size: 12px; margin-bottom: 8px; }
+    .success { color: #4ade80; font-size: 12px; margin-bottom: 8px; }
+    .loading { text-align: center; color: rgba(255,255,255,0.4); padding: 40px 0; font-size: 13px; }
+
+    /* Study mode styles */
+    .deck-list { list-style: none; padding: 0; }
+    .deck-item {
+      padding: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
+      margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .deck-item:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); }
+    .deck-name { font-size: 14px; font-weight: 500; }
+    .deck-stats { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .deck-badge {
+      background: #0284c7; color: #fff; border-radius: 12px; padding: 2px 8px;
+      font-size: 11px; font-weight: 600;
+    }
+    .deck-badge.empty { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
+
+    .flashcard-container { perspective: 800px; margin: 16px 0; }
+    .flashcard {
+      width: 100%; min-height: 180px; border-radius: 12px; padding: 24px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-size: 16px; line-height: 1.5; cursor: pointer; transition: transform 0.4s;
+      transform-style: preserve-3d; position: relative;
+    }
+    .flashcard-front, .flashcard-back {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      padding: 24px; backface-visibility: hidden; border-radius: 12px;
+    }
+    .flashcard-front { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); }
+    .flashcard-back {
+      background: rgba(2,132,199,0.15); border: 1px solid rgba(56,189,248,0.3);
+      transform: rotateY(180deg);
+    }
+    .flashcard.flipped { transform: rotateY(180deg); }
+
+    .study-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .study-actions button {
+      flex: 1; padding: 10px; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    .btn-again { background: #dc2626; color: #fff; }
+    .btn-hard { background: #f59e0b; color: #000; }
+    .btn-good { background: #22c55e; color: #fff; }
+    .btn-easy { background: #0284c7; color: #fff; }
+
+    .study-progress {
+      font-size: 12px; color: rgba(255,255,255,0.4); text-align: center; margin-bottom: 8px;
+    }
+
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <!-- Login View -->
+  <div id="login-view" class="hidden">
+    <h1>Imitation</h1>
+    <p class="subtitle">Sign in to get started</p>
+    <div class="form-group">
+      <label for="sb-email">Email</label>
+      <input type="email" id="sb-email" placeholder="Enter email" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label for="sb-password">Password</label>
+      <input type="password" id="sb-password" placeholder="Enter password" autocomplete="current-password">
+    </div>
+    <div id="sb-login-error" class="error hidden"></div>
+    <button id="sb-login-btn" class="btn-primary">Sign In</button>
+  </div>
+
+  <!-- Main View -->
+  <div id="main-content" class="hidden">
+    <div class="header">
+      <h1>Imitation</h1>
+      <button id="sb-logout-btn" class="btn-text">Logout</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="add">Add Card</button>
+      <button class="tab-btn" data-tab="study">Study Now</button>
+    </div>
+
+    <!-- Add Card Tab -->
+    <div id="tab-add">
+      <div class="form-group">
+        <label for="sb-deck-select">Deck</label>
+        <select id="sb-deck-select"><option value="">Loading...</option></select>
+      </div>
+      <div class="form-group">
+        <label for="sb-front">Question (Front)</label>
+        <textarea id="sb-front" placeholder="Enter question" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="sb-back">Answer (Back)</label>
+        <textarea id="sb-back" placeholder="Enter answer" rows="3"></textarea>
+      </div>
+      <div id="sb-add-error" class="error hidden"></div>
+      <div id="sb-add-success" class="success hidden"></div>
+      <button id="sb-add-btn" class="btn-primary">Add Card</button>
+    </div>
+
+    <!-- Study Tab -->
+    <div id="tab-study" class="hidden">
+      <!-- Deck selection -->
+      <div id="study-deck-list">
+        <p class="subtitle">Select a deck to study</p>
+        <ul class="deck-list" id="study-decks"></ul>
+      </div>
+
+      <!-- Study session -->
+      <div id="study-session" class="hidden">
+        <div class="header">
+          <h2 id="study-deck-name"></h2>
+          <button id="study-back-btn" class="btn-text">&larr; Decks</button>
+        </div>
+        <div class="study-progress" id="study-progress"></div>
+        <div class="flashcard-container">
+          <div class="flashcard" id="study-card">
+            <div class="flashcard-front" id="study-card-front"></div>
+            <div class="flashcard-back" id="study-card-back"></div>
+          </div>
+        </div>
+        <div class="study-actions hidden" id="study-actions">
+          <button class="btn-again" data-quality="1">Again</button>
+          <button class="btn-hard" data-quality="2">Hard</button>
+          <button class="btn-good" data-quality="3">Good</button>
+          <button class="btn-easy" data-quality="4">Easy</button>
+        </div>
+        <div id="study-complete" class="hidden" style="text-align:center; padding:40px 0;">
+          <p style="font-size:18px; margin-bottom:8px;">All done!</p>
+          <p class="subtitle">No more cards to review in this deck.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="sb-loading">
+    <p class="loading">Loading...</p>
+  </div>
+
+  <script src="sidebar.js"></script>
+</body>
+</html>

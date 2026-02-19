@@ -13,7 +13,7 @@ function isAllowedOrigin(origin: string): boolean {
   return false;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const origin = request.headers.get("origin");
 
   // Handle CORS preflight

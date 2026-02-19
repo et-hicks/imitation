@@ -8,6 +8,7 @@ const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 // DOM elements
 const loginView = document.getElementById("login-view");
 const mainView = document.getElementById("main-view");
+const settingsView = document.getElementById("settings-view");
 const loadingView = document.getElementById("loading-view");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
@@ -15,18 +16,25 @@ const loginBtn = document.getElementById("login-btn");
 const loginError = document.getElementById("login-error");
 const logoutBtn = document.getElementById("logout-btn");
 const deckSelect = document.getElementById("deck-select");
-const cardFront = document.getElementById("card-front");
-const cardBack = document.getElementById("card-back");
+const cardEntries = document.getElementById("card-entries");
+const addAnotherBtn = document.getElementById("add-another-btn");
 const addCardBtn = document.getElementById("add-card-btn");
 const addError = document.getElementById("add-error");
 const addSuccess = document.getElementById("add-success");
+const settingsBtn = document.getElementById("settings-btn");
+const settingsBackBtn = document.getElementById("settings-back-btn");
+const reminderEnabled = document.getElementById("reminder-enabled");
+const reminderInterval = document.getElementById("reminder-interval");
 
 function showView(view) {
   loginView.classList.add("hidden");
   mainView.classList.add("hidden");
+  settingsView.classList.add("hidden");
   loadingView.classList.add("hidden");
   view.classList.remove("hidden");
 }
+
+// ── Auth helpers ──
 
 async function getStoredAuth() {
   const result = await browser.storage.local.get([
@@ -122,6 +130,8 @@ async function login(email, password) {
   return data.access_token;
 }
 
+// ── API helpers ──
+
 async function fetchDecks(token) {
   const res = await fetch(`${API_URL}/decks`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -142,6 +152,8 @@ async function addCard(token, deckId, front, back) {
   if (!res.ok) throw new Error("Failed to add card");
   return res.json();
 }
+
+// ── Deck loading ──
 
 async function loadDecks(token) {
   try {
@@ -184,7 +196,108 @@ deckSelect.addEventListener("change", () => {
   browser.storage.local.set({ selected_deck_id: deckSelect.value });
 });
 
-// Login handler
+// ── Batch card management ──
+
+let cardCount = 1;
+
+function addCardEntry() {
+  const index = cardCount++;
+  const entry = document.createElement("div");
+  entry.className = "card-entry";
+  entry.dataset.index = index;
+  entry.innerHTML = `
+    <div class="card-entry-header">
+      <span class="card-entry-label">Card ${index + 1}</span>
+      <button class="btn-remove-card" title="Remove card">&times;</button>
+    </div>
+    <div class="form-group">
+      <label>Question (Front)</label>
+      <textarea class="card-front" placeholder="Enter question" rows="2"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Answer (Back)</label>
+      <textarea class="card-back" placeholder="Enter answer" rows="2"></textarea>
+    </div>
+  `;
+  cardEntries.appendChild(entry);
+
+  entry.querySelector(".btn-remove-card").addEventListener("click", () => {
+    entry.remove();
+    renumberCards();
+  });
+
+  // Show remove buttons on all cards when there's more than one
+  updateRemoveButtons();
+  return entry;
+}
+
+function renumberCards() {
+  const entries = cardEntries.querySelectorAll(".card-entry");
+  entries.forEach((entry, i) => {
+    entry.querySelector(".card-entry-label").textContent = `Card ${i + 1}`;
+  });
+  updateRemoveButtons();
+}
+
+function updateRemoveButtons() {
+  const entries = cardEntries.querySelectorAll(".card-entry");
+  const removeBtns = cardEntries.querySelectorAll(".btn-remove-card");
+  removeBtns.forEach((btn) => {
+    if (entries.length > 1) {
+      btn.classList.remove("hidden");
+    } else {
+      btn.classList.add("hidden");
+    }
+  });
+}
+
+addAnotherBtn.addEventListener("click", () => {
+  addCardEntry();
+});
+
+// ── Remember after autoclose ──
+// When popup opens, restore any previously entered text that wasn't submitted
+
+async function restoreDraft() {
+  const stored = await browser.storage.local.get(["draft_cards"]);
+  if (stored.draft_cards && stored.draft_cards.length > 0) {
+    const drafts = stored.draft_cards;
+    // Fill first card
+    const firstFront = cardEntries.querySelector(".card-front");
+    const firstBack = cardEntries.querySelector(".card-back");
+    if (drafts[0]) {
+      firstFront.value = drafts[0].front || "";
+      firstBack.value = drafts[0].back || "";
+    }
+    // Add additional card entries for remaining drafts
+    for (let i = 1; i < drafts.length; i++) {
+      const entry = addCardEntry();
+      entry.querySelector(".card-front").value = drafts[i].front || "";
+      entry.querySelector(".card-back").value = drafts[i].back || "";
+    }
+  }
+}
+
+function saveDraft() {
+  const entries = cardEntries.querySelectorAll(".card-entry");
+  const drafts = [];
+  entries.forEach((entry) => {
+    const front = entry.querySelector(".card-front").value;
+    const back = entry.querySelector(".card-back").value;
+    if (front || back) {
+      drafts.push({ front, back });
+    }
+  });
+  browser.storage.local.set({ draft_cards: drafts });
+}
+
+// Auto-save draft on any text input
+cardEntries.addEventListener("input", () => {
+  saveDraft();
+});
+
+// ── Login handler ──
+
 loginBtn.addEventListener("click", async () => {
   const email = emailInput.value.trim();
   const password = passwordInput.value;
@@ -222,15 +335,15 @@ logoutBtn.addEventListener("click", async () => {
     "access_token",
     "refresh_token",
     "expires_at",
+    "draft_cards",
   ]);
   showView(loginView);
 });
 
-// Add card handler
+// ── Add card(s) handler (batch) ──
+
 addCardBtn.addEventListener("click", async () => {
   const deckId = deckSelect.value;
-  const front = cardFront.value.trim();
-  const back = cardBack.value.trim();
 
   if (!deckId) {
     addError.textContent = "Please select a deck";
@@ -238,8 +351,20 @@ addCardBtn.addEventListener("click", async () => {
     addSuccess.classList.add("hidden");
     return;
   }
-  if (!front || !back) {
-    addError.textContent = "Please fill in both question and answer";
+
+  // Collect all card entries
+  const entries = cardEntries.querySelectorAll(".card-entry");
+  const cards = [];
+  for (const entry of entries) {
+    const front = entry.querySelector(".card-front").value.trim();
+    const back = entry.querySelector(".card-back").value.trim();
+    if (front && back) {
+      cards.push({ front, back });
+    }
+  }
+
+  if (cards.length === 0) {
+    addError.textContent = "Please fill in at least one card with both question and answer";
     addError.classList.remove("hidden");
     addSuccess.classList.add("hidden");
     return;
@@ -256,26 +381,85 @@ addCardBtn.addEventListener("click", async () => {
       showView(loginView);
       return;
     }
-    await addCard(token, deckId, front, back);
-    cardFront.value = "";
-    cardBack.value = "";
-    addSuccess.classList.remove("hidden");
-    setTimeout(() => addSuccess.classList.add("hidden"), 2000);
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const card of cards) {
+      try {
+        await addCard(token, deckId, card.front, card.back);
+        successCount++;
+      } catch {
+        failCount++;
+      }
+    }
+
+    if (failCount > 0) {
+      addSuccess.textContent = `${successCount} card(s) added, ${failCount} failed`;
+      addSuccess.classList.remove("hidden");
+    } else {
+      addSuccess.textContent = `${successCount} card${successCount === 1 ? "" : "s"} added!`;
+      addSuccess.classList.remove("hidden");
+    }
+
+    // Clear all card entries back to one empty card
+    cardEntries.innerHTML = "";
+    cardCount = 0;
+    addCardEntry();
+    // Clear the first card's remove button
+    updateRemoveButtons();
+
+    // Clear draft since cards were submitted
+    await browser.storage.local.remove(["draft_cards"]);
+
+    setTimeout(() => addSuccess.classList.add("hidden"), 3000);
   } catch (err) {
     addError.textContent = err.message;
     addError.classList.remove("hidden");
   } finally {
     addCardBtn.disabled = false;
-    addCardBtn.textContent = "Add Card";
+    addCardBtn.textContent = "Add Card(s)";
   }
 });
+
+// ── Settings ──
+
+settingsBtn.addEventListener("click", async () => {
+  showView(settingsView);
+  // Load current settings
+  const stored = await browser.storage.local.get(["reminder_enabled", "reminder_interval_minutes"]);
+  reminderEnabled.checked = !!stored.reminder_enabled;
+  if (stored.reminder_interval_minutes) {
+    reminderInterval.value = String(stored.reminder_interval_minutes);
+  }
+});
+
+settingsBackBtn.addEventListener("click", async () => {
+  // Save settings
+  await browser.storage.local.set({
+    reminder_enabled: reminderEnabled.checked,
+    reminder_interval_minutes: parseInt(reminderInterval.value, 10),
+  });
+  const savedMsg = document.getElementById("settings-saved");
+  savedMsg.classList.remove("hidden");
+  setTimeout(() => savedMsg.classList.add("hidden"), 1500);
+
+  const token = await getStoredAuth();
+  if (token) {
+    showView(mainView);
+  } else {
+    showView(loginView);
+  }
+});
+
+// ── Init ──
 
 async function showMainView(token) {
   showView(mainView);
   await loadDecks(token);
+  await restoreDraft();
 }
 
-// Initialize
 (async () => {
   const token = await getStoredAuth();
   if (token) {

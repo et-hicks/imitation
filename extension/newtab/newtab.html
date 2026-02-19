@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Imitation — Study</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a0a0a; color: #fff; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px 20px;
+    }
+    .hidden { display: none !important; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    h2 { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+    .subtitle { color: rgba(255,255,255,0.5); font-size: 14px; margin-bottom: 24px; }
+
+    .container { width: 100%; max-width: 600px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; width: 100%; }
+
+    .btn-primary {
+      padding: 12px 24px; background: #0284c7; color: #fff; border: none;
+      border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer;
+    }
+    .btn-primary:hover { background: #0369a1; }
+    .btn-text {
+      background: none; border: none; color: rgba(255,255,255,0.4);
+      font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 4px;
+    }
+    .btn-text:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.05); }
+
+    .deck-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; width: 100%; }
+    .deck-card {
+      padding: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+      cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.02);
+    }
+    .deck-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(56,189,248,0.3); }
+    .deck-card-name { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .deck-card-stats { display: flex; gap: 12px; font-size: 12px; color: rgba(255,255,255,0.4); }
+    .stat { display: flex; align-items: center; gap: 4px; }
+    .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .stat-due { background: #0284c7; }
+    .stat-reviewed { background: #22c55e; }
+    .stat-weak { background: #f59e0b; }
+
+    .flashcard-area { width: 100%; max-width: 500px; margin: 0 auto; text-align: center; }
+    .flashcard-container { perspective: 1000px; margin: 24px 0; }
+    .flashcard {
+      width: 100%; min-height: 240px; border-radius: 16px; cursor: pointer;
+      transition: transform 0.5s; transform-style: preserve-3d; position: relative;
+    }
+    .flashcard-front, .flashcard-back {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      padding: 32px; backface-visibility: hidden; border-radius: 16px;
+      font-size: 18px; line-height: 1.6;
+    }
+    .flashcard-front { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); }
+    .flashcard-back {
+      background: rgba(2,132,199,0.15); border: 1px solid rgba(56,189,248,0.3);
+      transform: rotateY(180deg);
+    }
+    .flashcard.flipped { transform: rotateY(180deg); }
+
+    .study-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+    .study-actions button {
+      padding: 10px 24px; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 500; cursor: pointer;
+    }
+    .btn-again { background: #dc2626; color: #fff; }
+    .btn-hard { background: #f59e0b; color: #000; }
+    .btn-good { background: #22c55e; color: #fff; }
+    .btn-easy { background: #0284c7; color: #fff; }
+
+    .study-progress {
+      font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 8px;
+    }
+
+    .login-prompt {
+      text-align: center; padding: 60px 20px;
+    }
+    .login-prompt p { margin-bottom: 12px; color: rgba(255,255,255,0.6); }
+
+    .complete-msg { text-align: center; padding: 60px 0; }
+    .complete-msg h2 { font-size: 24px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Not logged in -->
+    <div id="nt-login" class="login-prompt hidden">
+      <h1>Imitation</h1>
+      <p>Sign in via the extension popup to study your flashcards here.</p>
+    </div>
+
+    <!-- Deck selection -->
+    <div id="nt-decks" class="hidden">
+      <h1>Study Flashcards</h1>
+      <p class="subtitle">Pick a deck to review</p>
+      <div class="deck-grid" id="nt-deck-grid"></div>
+    </div>
+
+    <!-- Study session -->
+    <div id="nt-study" class="hidden">
+      <div class="header">
+        <h2 id="nt-deck-name"></h2>
+        <button id="nt-back-btn" class="btn-text">&larr; All Decks</button>
+      </div>
+      <div class="flashcard-area">
+        <div class="study-progress" id="nt-progress"></div>
+        <div class="flashcard-container">
+          <div class="flashcard" id="nt-card">
+            <div class="flashcard-front" id="nt-card-front"></div>
+            <div class="flashcard-back" id="nt-card-back"></div>
+          </div>
+        </div>
+        <div class="study-actions hidden" id="nt-actions">
+          <button class="btn-again" data-quality="1">Again</button>
+          <button class="btn-hard" data-quality="2">Hard</button>
+          <button class="btn-good" data-quality="3">Good</button>
+          <button class="btn-easy" data-quality="4">Easy</button>
+        </div>
+        <div id="nt-complete" class="complete-msg hidden">
+          <h2>All caught up!</h2>
+          <p class="subtitle">No more cards to review in this deck.</p>
+          <button id="nt-complete-back" class="btn-primary" style="margin-top:16px;">Back to Decks</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="nt-loading">
+      <p style="text-align:center; color:rgba(255,255,255,0.4); padding:60px 0; font-size:14px;">Loading...</p>
+    </div>
+  </div>
+
+  <script src="newtab.js"></script>
+</body>
+</html>

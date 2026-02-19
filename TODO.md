@@ -57,14 +57,15 @@
 ## Browser Extension Improvements
 
 ### Core Functionality
-- **Highlight-to-card** — Select text on any webpage, right-click, and create a flashcard directly from the selection (front = selected text or auto-generated question, back = context or user input)
+- **Highlight-to-card** — Select text on any webpage, right-click, and create a flashcard directly from the selection (front = selected text or auto-generated question, back = context or user input). To better improve this for the user, we should inject ui elements into the page if possible so the user can add what they want
 - **Quick-add keyboard shortcut** — Global hotkey (e.g., Alt+Shift+F) to open the extension popup from any page
 - **Batch card creation** — Add multiple cards at once without closing the popup between each
-- **Card templates in extension** — Pre-fill card format based on the type of content (vocabulary, definition, concept)
-- **Context URL** — Automatically save the source URL with each card created from the extension for future reference
+- **Remember after Autoclose** - if the user goes to highlight something, once the extension closes, remember the deck, and the previously inputted text so that copy/paste is easier on front/back
+- **Firefox Sidebar** - create the ability to load the flashcard extension right there in a firefox sidebar. Have both a "add new card" and a "study now" feature in the extension
+
 
 ### Study in Extension
-- **Mini study mode** — Study due cards directly in the extension popup without opening the full app
+- **Mini study mode** — Study due cards directly in the extension popup without opening the full app. Each deck shows how many cards are set for review, how many are reviewed, and how many are weak.
 - **Browser notification reminders** — "You have 15 cards due for review" notification at configurable intervals
 - **New tab study page** — Option to replace new tab page with a flashcard review interface
 
@@ -74,3 +75,11 @@
 
 ### Integration
 - **Right-click context menu** — "Add to flashcards" option in the browser context menu
+
+##
+                                                                           
+ => => # ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy                           
+
+
+
+
