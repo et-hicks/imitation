@@ -26,8 +26,6 @@ export default function StudyMode({ deck, session, onExit, studyAll, onStartStud
     const [cards, setCards] = useState<StudyCard[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
-    const [remindValue, setRemindValue] = useState(1);
-    const [remindUnit, setRemindUnit] = useState<"min" | "hr" | "day">("day");
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
@@ -58,7 +56,7 @@ export default function StudyMode({ deck, session, onExit, studyAll, onStartStud
     const totalCards = cards.length;
     const isComplete = currentIndex >= totalCards;
 
-    const handleRemindMe = async () => {
+    const handleReview = async (remindValue: number, remindUnit: "min" | "hr" | "day") => {
         if (!currentCard || !session?.access_token || submitting) return;
 
         setSubmitting(true);
@@ -169,34 +167,39 @@ export default function StudyMode({ deck, session, onExit, studyAll, onStartStud
                 onFlip={() => setIsFlipped(!isFlipped)}
             />
 
-            {/* Remind Me Controls */}
-            <div className="flex items-center justify-center gap-4 mt-8">
-                <span className="text-white/40 text-sm">remind me in</span>
-                <input
-                    type="number"
-                    min={1}
-                    max={999}
-                    value={remindValue}
-                    onChange={(e) => setRemindValue(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-16 bg-black border border-white/20 rounded-lg px-3 py-2 text-center text-sm focus:outline-none focus:border-sky-500/60"
-                />
-                <select
-                    value={remindUnit}
-                    onChange={(e) => setRemindUnit(e.target.value as "min" | "hr" | "day")}
-                    className="bg-black border border-white/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500/60"
-                >
-                    <option value="min">min</option>
-                    <option value="hr">hr</option>
-                    <option value="day">day</option>
-                </select>
-                <button
-                    onClick={handleRemindMe}
-                    disabled={submitting}
-                    className="bg-sky-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-sky-500 disabled:opacity-50 transition"
-                >
-                    {submitting ? "..." : "Next"}
-                </button>
-            </div>
+            {/* Spaced Repetition Buttons */}
+            {isFlipped && (
+                <div className="flex items-center justify-center gap-3 mt-8">
+                    <button
+                        onClick={() => handleReview(1, "min")}
+                        disabled={submitting}
+                        className="flex flex-col items-center px-5 py-3 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-500 text-white disabled:opacity-50 transition"
+                    >
+                        <span>1 min</span>
+                    </button>
+                    <button
+                        onClick={() => handleReview(10, "min")}
+                        disabled={submitting}
+                        className="flex flex-col items-center px-5 py-3 rounded-lg text-sm font-medium bg-pink-600 hover:bg-pink-500 text-white disabled:opacity-50 transition"
+                    >
+                        <span>10 min</span>
+                    </button>
+                    <button
+                        onClick={() => handleReview(1, "day")}
+                        disabled={submitting}
+                        className="flex flex-col items-center px-5 py-3 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 transition"
+                    >
+                        <span>1 day</span>
+                    </button>
+                    <button
+                        onClick={() => handleReview(7, "day")}
+                        disabled={submitting}
+                        className="flex flex-col items-center px-5 py-3 rounded-lg text-sm font-medium bg-green-600 hover:bg-green-500 text-white disabled:opacity-50 transition"
+                    >
+                        <span>1 week</span>
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

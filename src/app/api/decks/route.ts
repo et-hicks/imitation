@@ -24,37 +24,30 @@ export async function GET(request: NextRequest) {
 
   const result = [];
   for (const deck of decks.rows) {
-    // Get status counts from study_queue
+    // Get counts - only count cards as "due" if next_review_at <= NOW()
     const counts = await pool.query(
-      `SELECT sq.status, COUNT(*)::int AS count
+      `SELECT
+         COUNT(*) FILTER (WHERE sq.next_review_at <= NOW())::int AS due_count,
+         COUNT(*)::int AS tracked_count
        FROM study_queue sq
        JOIN cards c ON c.id = sq.card_id
-       WHERE c.deck_id = $1 AND sq.user_id = $2
-       GROUP BY sq.status`,
+       WHERE c.deck_id = $1 AND sq.user_id = $2`,
       [deck.id, user.id]
     );
 
-    const statusCounts: Record<string, number> = {
-      new: 0,
-      learning: 0,
-      reviewed: 0,
-    };
-    let tracked = 0;
-    for (const row of counts.rows) {
-      statusCounts[row.status] = row.count;
-      tracked += row.count;
-    }
-    // Cards not in study queue are "new"
-    statusCounts.new = deck.card_count - tracked + statusCounts.new;
+    const tracked = counts.rows[0]?.tracked_count || 0;
+    const dueFromQueue = counts.rows[0]?.due_count || 0;
+    const newCount = deck.card_count - tracked;
+    const reviewedCount = tracked - dueFromQueue;
 
     result.push({
       id: deck.id,
       name: deck.name,
       description: deck.description,
       card_count: deck.card_count,
-      new_count: statusCounts.new,
-      learning_count: statusCounts.learning,
-      reviewed_count: statusCounts.reviewed,
+      new_count: newCount,
+      learning_count: dueFromQueue,
+      reviewed_count: reviewedCount,
     });
   }
 

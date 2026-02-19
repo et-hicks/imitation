@@ -5,9 +5,52 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Hello World</h1>
+  <!-- Login View -->
+  <div id="login-view" class="container hidden">
+    <h1>Imitation</h1>
+    <p class="subtitle">Sign in to add flashcards</p>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Enter email" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter password" autocomplete="current-password">
+    </div>
+    <div id="login-error" class="error hidden"></div>
+    <button id="login-btn" class="btn-primary">Sign In</button>
   </div>
+
+  <!-- Main View (Add Card) -->
+  <div id="main-view" class="container hidden">
+    <div class="header">
+      <h1>Add Flashcard</h1>
+      <button id="logout-btn" class="btn-text">Logout</button>
+    </div>
+    <div class="form-group">
+      <label for="deck-select">Deck</label>
+      <select id="deck-select">
+        <option value="">Loading decks...</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="card-front">Question (Front)</label>
+      <textarea id="card-front" placeholder="Enter question" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="card-back">Answer (Back)</label>
+      <textarea id="card-back" placeholder="Enter answer" rows="3"></textarea>
+    </div>
+    <div id="add-error" class="error hidden"></div>
+    <div id="add-success" class="success hidden">Card added!</div>
+    <button id="add-card-btn" class="btn-primary">Add Card</button>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading-view" class="container">
+    <p class="loading">Loading...</p>
+  </div>
+
   <script src="popup.js"></script>
 </body>
 </html>

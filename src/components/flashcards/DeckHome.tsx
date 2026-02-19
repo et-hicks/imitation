@@ -65,6 +65,24 @@ export default function DeckHome({ deck, session, onStartStudy, onStartStudyAll,
         }
     };
 
+    const handleDeleteCard = async (cardId: number) => {
+        if (!session?.access_token) return;
+        if (!confirm("Delete this card?")) return;
+
+        try {
+            const res = await fetch(`${BACKEND_URL}/cards/${cardId}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+            if (res.ok) {
+                setCards((prev) => prev.filter((c) => c.id !== cardId));
+                onRefresh();
+            }
+        } catch (err) {
+            console.error("Failed to delete card:", err);
+        }
+    };
+
     const totalCards = deck.card_count;
     const dueCards = deck.new_count + deck.learning_count;
 
@@ -173,21 +191,29 @@ export default function DeckHome({ deck, session, onStartStudy, onStartStudyAll,
                 ) : (
                     <div className="divide-y divide-white/10">
                         {cards.map((card) => (
-                            <div key={card.id} className="px-4 py-3 flex justify-between items-start">
+                            <div key={card.id} className="px-4 py-3 flex justify-between items-center group">
                                 <div className="flex-1">
                                     <div className="text-sm font-medium">{card.front}</div>
-                                    <div className="text-sm text-white/50 mt-1">{card.back}</div>
                                 </div>
-                                <span
-                                    className={`text-xs px-2 py-1 rounded ${card.status === "new"
-                                            ? "bg-blue-500/20 text-blue-400"
-                                            : card.status === "learning"
-                                                ? "bg-orange-500/20 text-orange-400"
-                                                : "bg-green-500/20 text-green-400"
-                                        }`}
-                                >
-                                    {card.status}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span
+                                        className={`text-xs px-2 py-1 rounded ${card.status === "new"
+                                                ? "bg-blue-500/20 text-blue-400"
+                                                : card.status === "learning"
+                                                    ? "bg-orange-500/20 text-orange-400"
+                                                    : "bg-green-500/20 text-green-400"
+                                            }`}
+                                    >
+                                        {card.status}
+                                    </span>
+                                    <button
+                                        onClick={() => handleDeleteCard(card.id)}
+                                        className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 transition text-sm px-1"
+                                        title="Delete card"
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>

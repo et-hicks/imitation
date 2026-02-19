@@ -8,6 +8,7 @@ type DeckSidebarProps = {
     activeDeckId: number | null;
     onSelectDeck: (id: number) => void;
     onCreateDeck: (name: string, description: string) => void;
+    onDeleteDeck: (id: number) => void;
     loading: boolean;
 };
 
@@ -16,6 +17,7 @@ export default function DeckSidebar({
     activeDeckId,
     onSelectDeck,
     onCreateDeck,
+    onDeleteDeck,
     loading,
 }: DeckSidebarProps) {
     const [showCreate, setShowCreate] = useState(false);
@@ -92,16 +94,30 @@ export default function DeckSidebar({
                         const isActive = activeDeckId === deck.id;
                         const total = deck.new_count + deck.learning_count + deck.reviewed_count;
                         return (
-                            <button
+                            <div
                                 key={deck.id}
-                                onClick={() => onSelectDeck(deck.id)}
-                                className={`w-full text-left px-3 py-2.5 rounded-lg transition-all ${
+                                className={`group relative w-full text-left px-3 py-2.5 rounded-lg transition-all cursor-pointer ${
                                     isActive
                                         ? "bg-sky-600/20 border border-sky-500/40 text-white"
                                         : "border border-transparent hover:bg-white/5 text-white/80"
                                 }`}
+                                onClick={() => onSelectDeck(deck.id)}
                             >
-                                <div className="font-medium text-sm truncate">{deck.name}</div>
+                                <div className="flex items-center justify-between">
+                                    <div className="font-medium text-sm truncate flex-1">{deck.name}</div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (confirm(`Delete deck "${deck.name}" and all its cards?`)) {
+                                                onDeleteDeck(deck.id);
+                                            }
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 transition text-sm px-1 ml-1"
+                                        title="Delete deck"
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
                                 <div className="flex gap-3 mt-1 text-xs">
                                     {deck.new_count > 0 && (
                                         <span className="text-blue-400">{deck.new_count} new</span>
@@ -113,7 +129,7 @@ export default function DeckSidebar({
                                         <span className="text-white/30">empty</span>
                                     )}
                                 </div>
-                            </button>
+                            </div>
                         );
                     })
                 )}

@@ -83,6 +83,28 @@ export default function FlashcardsPage() {
         }
     };
 
+    const handleDeleteDeck = async (deckId: number) => {
+        if (!session?.access_token) return;
+
+        try {
+            const res = await fetch(`${BACKEND_URL}/decks/${deckId}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+            if (res.ok) {
+                setDecks((prev) => prev.filter((d) => d.id !== deckId));
+                if (activeDeckId === deckId) {
+                    const remaining = decks.filter((d) => d.id !== deckId);
+                    setActiveDeckId(remaining.length > 0 ? remaining[0].id : null);
+                    setIsStudying(false);
+                    setIsStudyingAll(false);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to delete deck:", err);
+        }
+    };
+
     const handleStartStudyAll = () => {
         setIsStudyingAll(true);
         setIsStudying(true);
@@ -113,6 +135,7 @@ export default function FlashcardsPage() {
                     setIsStudyingAll(false);
                 }}
                 onCreateDeck={handleCreateDeck}
+                onDeleteDeck={handleDeleteDeck}
                 loading={loading}
             />
 

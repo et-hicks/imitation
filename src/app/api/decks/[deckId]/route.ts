@@ -15,27 +15,26 @@ async function getDeckCounts(deckId: number, userId: number) {
     [deckId]
   );
 
+  // Only count cards as "due" if next_review_at <= NOW()
   const counts = await pool.query(
-    `SELECT sq.status, COUNT(*)::int AS count
+    `SELECT
+       COUNT(*) FILTER (WHERE sq.next_review_at <= NOW())::int AS due_count,
+       COUNT(*)::int AS tracked_count
      FROM study_queue sq
      JOIN cards c ON c.id = sq.card_id
-     WHERE c.deck_id = $1 AND sq.user_id = $2
-     GROUP BY sq.status`,
+     WHERE c.deck_id = $1 AND sq.user_id = $2`,
     [deckId, userId]
   );
 
   const total = cardCount.rows[0].count;
+  const tracked = counts.rows[0]?.tracked_count || 0;
+  const dueFromQueue = counts.rows[0]?.due_count || 0;
+
   const statusCounts: Record<string, number> = {
-    new: 0,
-    learning: 0,
-    reviewed: 0,
+    new: total - tracked,
+    learning: dueFromQueue,
+    reviewed: tracked - dueFromQueue,
   };
-  let tracked = 0;
-  for (const row of counts.rows) {
-    statusCounts[row.status] = row.count;
-    tracked += row.count;
-  }
-  statusCounts.new = total - tracked + statusCounts.new;
 
   return { total, statusCounts };
 }
