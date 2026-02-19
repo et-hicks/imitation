@@ -35,13 +35,22 @@ export async function POST(request: NextRequest, { params }: Params) {
   const body = await request.json();
   const { remind_value, remind_unit } = body;
 
-  // Calculate next review interval
+  // Validate remind_value is a positive integer within bounds
+  const parsedValue = Number(remind_value);
+  if (!Number.isInteger(parsedValue) || parsedValue < 1 || parsedValue > 365) {
+    return jsonResponse({ detail: "remind_value must be an integer between 1 and 365" }, { status: 400 });
+  }
+
+  // Validate remind_unit is one of the allowed values
   const intervalMap: Record<string, string> = {
     min: "minutes",
     hr: "hours",
     day: "days",
   };
-  const intervalUnit = intervalMap[remind_unit] || "days";
+  const intervalUnit = intervalMap[remind_unit];
+  if (!intervalUnit) {
+    return jsonResponse({ detail: "remind_unit must be min, hr, or day" }, { status: 400 });
+  }
 
   // Check for existing study queue entry
   const existing = await pool.query(

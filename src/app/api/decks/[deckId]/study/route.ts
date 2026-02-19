@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 
   const user = await getOrCreateUser(authResult);
   const { searchParams } = new URL(request.url);
-  const limit = parseInt(searchParams.get("limit") || "10");
+  const limit = Math.min(Math.max(parseInt(searchParams.get("limit") || "10") || 10, 1), 100);
 
   // Verify user owns deck
   const deck = await pool.query(

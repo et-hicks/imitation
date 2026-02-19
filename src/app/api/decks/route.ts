@@ -61,10 +61,16 @@ export async function POST(request: NextRequest) {
   const user = await getOrCreateUser(authResult);
   const body = await request.json();
 
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  if (!name || name.length > 200) {
+    return jsonResponse({ detail: "Deck name is required and must be under 200 characters" }, { status: 400 });
+  }
+  const description = typeof body.description === "string" ? body.description.trim().slice(0, 1000) : null;
+
   const result = await pool.query(
     `INSERT INTO decks (user_id, name, description)
      VALUES ($1, $2, $3) RETURNING *`,
-    [user.id, body.name, body.description || null]
+    [user.id, name, description || null]
   );
 
   const deck = result.rows[0];

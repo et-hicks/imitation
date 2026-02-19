@@ -66,10 +66,20 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   const body = await request.json();
+
+  const front = typeof body.front === "string" ? body.front.trim() : "";
+  const back = typeof body.back === "string" ? body.back.trim() : "";
+  if (!front || front.length > 5000) {
+    return jsonResponse({ detail: "Card front is required and must be under 5000 characters" }, { status: 400 });
+  }
+  if (!back || back.length > 5000) {
+    return jsonResponse({ detail: "Card back is required and must be under 5000 characters" }, { status: 400 });
+  }
+
   const result = await pool.query(
     `INSERT INTO cards (deck_id, front, back)
      VALUES ($1, $2, $3) RETURNING *`,
-    [deckId, body.front, body.back]
+    [deckId, front, back]
   );
 
   const card = result.rows[0];

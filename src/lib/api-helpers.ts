@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import pool from "./db";
 import type { AuthUser } from "./auth";
 
@@ -26,22 +27,47 @@ export async function getOrCreateUser(authUser: AuthUser) {
   return result.rows[0];
 }
 
-/** CORS headers for browser extension and cross-origin requests. */
-export const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
+/** Allowed CORS origins. Extensions use moz-extension:// scheme. */
+const ALLOWED_ORIGINS = new Set([
+  "https://imitation-broken-dawn-9001.fly.dev",
+  ...(process.env.ALLOWED_ORIGINS?.split(",").map((s) => s.trim()) || []),
+]);
+
+function getAllowedOrigin(origin: string | null): string | null {
+  if (!origin) return null;
+  if (ALLOWED_ORIGINS.has(origin)) return origin;
+  // Allow Firefox extension origins (moz-extension://*)
+  if (origin.startsWith("moz-extension://")) return origin;
+  return null;
+}
+
+/** Build CORS headers for a given request origin. */
+export function getCorsHeaders(origin: string | null) {
+  const allowedOrigin = getAllowedOrigin(origin);
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin || "",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    ...(allowedOrigin ? { Vary: "Origin" } : {}),
+  };
+}
 
 /** Return a JSON response with CORS headers. */
-export function jsonResponse(data: unknown, init?: ResponseInit) {
+export function jsonResponse(
+  data: unknown,
+  init?: ResponseInit,
+  request?: NextRequest
+) {
+  const origin = request?.headers.get("origin") ?? null;
+  const cors = getCorsHeaders(origin);
   return Response.json(data, {
     ...init,
-    headers: { ...corsHeaders, ...init?.headers },
+    headers: { ...cors, ...init?.headers },
   });
 }
 
 /** Return a CORS preflight response. */
-export function corsOptions() {
-  return new Response(null, { status: 204, headers: corsHeaders });
+export function corsOptions(request?: NextRequest) {
+  const origin = request?.headers.get("origin") ?? null;
+  return new Response(null, { status: 204, headers: getCorsHeaders(origin) });
 }
