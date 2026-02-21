@@ -5,6 +5,17 @@
   const API_URL = "https://imitation-broken-dawn-9001.fly.dev/api";
   let floatingUI = null;
   let currentSelection = "";
+  let highlightEnabled = true;
+
+  // Load setting once and keep it in sync
+  browser.storage.local.get("highlight_enabled").then((stored) => {
+    if (stored.highlight_enabled === false) highlightEnabled = false;
+  });
+  browser.storage.onChanged.addListener((changes) => {
+    if (changes.highlight_enabled) {
+      highlightEnabled = changes.highlight_enabled.newValue !== false;
+    }
+  });
 
   // ── Highlight-to-card: inject floating UI on text selection ──
 
@@ -220,21 +231,29 @@
     // Ignore clicks inside our own UI
     if (floatingUI && floatingUI.contains(e.target)) return;
     if (selectionBtn && selectionBtn.contains(e.target)) return;
+    if (!highlightEnabled) return;
 
-    const sel = window.getSelection();
-    const text = sel ? sel.toString().trim() : "";
+    // Small delay lets the browser finalize the selection after mouseup
+    setTimeout(() => {
+      const sel = window.getSelection();
+      const text = sel ? sel.toString().trim() : "";
 
-    if (text.length > 2) {
-      currentSelection = text;
-      const btn = createSelectionButton();
-      const range = sel.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-      btn.style.top = `${window.scrollY + rect.bottom + 6}px`;
-      btn.style.left = `${window.scrollX + rect.left}px`;
-      btn.style.display = "block";
-    } else if (selectionBtn) {
-      selectionBtn.style.display = "none";
-    }
+      if (text.length > 2) {
+        currentSelection = text;
+        try {
+          const range = sel.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+          const btn = createSelectionButton();
+          btn.style.top = `${window.scrollY + rect.bottom + 6}px`;
+          btn.style.left = `${window.scrollX + rect.left}px`;
+          btn.style.display = "block";
+        } catch {
+          // Selection was cleared before we could read the range
+        }
+      } else if (selectionBtn) {
+        selectionBtn.style.display = "none";
+      }
+    }, 10);
   });
 
   // Hide selection button when clicking elsewhere

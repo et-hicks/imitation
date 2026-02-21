@@ -23,8 +23,10 @@ const addError = document.getElementById("add-error");
 const addSuccess = document.getElementById("add-success");
 const settingsBtn = document.getElementById("settings-btn");
 const settingsBackBtn = document.getElementById("settings-back-btn");
+const highlightEnabled = document.getElementById("highlight-enabled");
 const reminderEnabled = document.getElementById("reminder-enabled");
 const reminderInterval = document.getElementById("reminder-interval");
+const openSidebarBtn = document.getElementById("open-sidebar-btn");
 
 function showView(view) {
   loginView.classList.add("hidden");
@@ -427,7 +429,8 @@ addCardBtn.addEventListener("click", async () => {
 settingsBtn.addEventListener("click", async () => {
   showView(settingsView);
   // Load current settings
-  const stored = await browser.storage.local.get(["reminder_enabled", "reminder_interval_minutes"]);
+  const stored = await browser.storage.local.get(["highlight_enabled", "reminder_enabled", "reminder_interval_minutes"]);
+  highlightEnabled.checked = stored.highlight_enabled !== false; // default to true
   reminderEnabled.checked = !!stored.reminder_enabled;
   if (stored.reminder_interval_minutes) {
     reminderInterval.value = String(stored.reminder_interval_minutes);
@@ -437,6 +440,7 @@ settingsBtn.addEventListener("click", async () => {
 settingsBackBtn.addEventListener("click", async () => {
   // Save settings
   await browser.storage.local.set({
+    highlight_enabled: highlightEnabled.checked,
     reminder_enabled: reminderEnabled.checked,
     reminder_interval_minutes: parseInt(reminderInterval.value, 10),
   });
@@ -450,6 +454,13 @@ settingsBackBtn.addEventListener("click", async () => {
   } else {
     showView(loginView);
   }
+});
+
+// ── Expand Sidebar ──
+
+openSidebarBtn.addEventListener("click", () => {
+  browser.sidebarAction.open();
+  window.close();
 });
 
 // ── Init ──
