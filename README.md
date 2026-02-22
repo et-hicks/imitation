@@ -83,8 +83,3 @@ Pushing to `main` triggers a GitHub Actions workflow that deploys to Fly.io.
 ```bash
 fly deploy --remote-only
 ```
-
-
-# Test Accounts
-etcpie
-sGQ:e?~R9G7LLnC
