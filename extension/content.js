@@ -282,4 +282,317 @@
       sendResponse({ ok: true });
     }
   });
+
+  // ══════════════════════════════════════════════════════════════════
+  // ── Duolingo Integration ──
+  // ══════════════════════════════════════════════════════════════════
+
+  if (window.location.hostname.includes("duolingo.com")) {
+    initDuolingoIntegration();
+  }
+
+  // Languages/topics Duolingo teaches — used to match deck names
+  const DUOLINGO_SUBJECTS = [
+    "French", "Spanish", "German", "Italian", "Portuguese", "Japanese",
+    "Korean", "Chinese", "Mandarin", "Russian", "Dutch", "Swedish",
+    "Norwegian", "Danish", "Polish", "Turkish", "Arabic", "Hebrew",
+    "Hindi", "Greek", "Czech", "Hungarian", "Romanian", "Ukrainian",
+    "Vietnamese", "Indonesian", "Swahili", "Esperanto", "Latin",
+    "Hawaiian", "Navajo", "Zulu", "Welsh", "Gaelic", "Music", "Chess",
+    "Math", "Mathematics",
+  ];
+
+  // ISO code → language name for URL-based detection
+  const LANG_CODE_MAP = {
+    es: "Spanish", fr: "French", de: "German", it: "Italian",
+    pt: "Portuguese", ja: "Japanese", ko: "Korean", zh: "Chinese",
+    ru: "Russian", nl: "Dutch", sv: "Swedish", no: "Norwegian",
+    da: "Danish", pl: "Polish", tr: "Turkish", ar: "Arabic",
+    he: "Hebrew", hi: "Hindi", el: "Greek", cs: "Czech",
+    hu: "Hungarian", ro: "Romanian", uk: "Ukrainian", vi: "Vietnamese",
+    id: "Indonesian", sw: "Swahili", eo: "Esperanto", la: "Latin",
+    haw: "Hawaiian", cy: "Welsh",
+  };
+
+  function initDuolingoIntegration() {
+    autoselectDuolingoDeck();
+    watchForDuolingoHints();
+  }
+
+  // ── Course detection ──────────────────────────────────────────────
+
+  function detectDuolingoCourse() {
+    // 1. URL pattern: /course/es/en or lesson paths that embed the lang
+    const urlMatch = window.location.pathname.match(/\/course\/([a-z-]{2,5})/i);
+    if (urlMatch) {
+      const code = urlMatch[1].toLowerCase();
+      if (LANG_CODE_MAP[code]) return LANG_CODE_MAP[code];
+    }
+
+    // 2. Look for known language/subject names in the page title
+    const title = document.title || "";
+    for (const subject of DUOLINGO_SUBJECTS) {
+      if (title.includes(subject)) return subject;
+    }
+
+    // 3. Look in the nav / header area for subject name text
+    const headerText =
+      document.querySelector("nav")?.textContent ||
+      document.querySelector("header")?.textContent ||
+      "";
+    for (const subject of DUOLINGO_SUBJECTS) {
+      if (headerText.includes(subject)) return subject;
+    }
+
+    // 4. Meta description
+    const metaDesc =
+      document.querySelector('meta[name="description"]')?.getAttribute("content") || "";
+    for (const subject of DUOLINGO_SUBJECTS) {
+      if (metaDesc.includes(subject)) return subject;
+    }
+
+    return null;
+  }
+
+  // ── Auto-deck selection ───────────────────────────────────────────
+
+  async function autoselectDuolingoDeck() {
+    try {
+      const course = detectDuolingoCourse();
+      if (!course) return;
+
+      const stored = await browser.storage.local.get([
+        "access_token",
+        "selected_deck_id",
+        "duo_auto_course",
+      ]);
+      if (!stored.access_token) return;
+
+      // If we already auto-selected for this exact course, the user may
+      // have manually switched decks since then — respect their choice.
+      if (stored.duo_auto_course === course && stored.selected_deck_id) return;
+
+      const res = await fetch(`${API_URL}/decks`, {
+        headers: { Authorization: `Bearer ${stored.access_token}` },
+      });
+      if (!res.ok) return;
+      const decks = await res.json();
+
+      const match = decks.find((d) =>
+        d.name.toLowerCase().includes(course.toLowerCase())
+      );
+
+      if (match) {
+        await browser.storage.local.set({
+          selected_deck_id: String(match.id),
+          duo_auto_course: course,
+        });
+      }
+    } catch {
+      // silently ignore — non-critical background feature
+    }
+  }
+
+  // ── Hover-button DOM helpers ──────────────────────────────────────
+
+  let duoHintBtn = null;
+
+  function buildDuoHintButton() {
+    const wrap = document.createElement("div");
+    wrap.id = "imitation-duo-hint-btn";
+    wrap.style.cssText = `
+      display: flex; gap: 6px; padding: 6px 8px 8px;
+      background: transparent;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      margin-top: 4px;
+    `;
+
+    const addBtn = document.createElement("button");
+    addBtn.textContent = "add";
+    addBtn.style.cssText = `
+      flex: 1; padding: 4px 0; background: #0284c7; color: #fff;
+      border: none; border-radius: 6px; font-size: 12px; font-weight: 700;
+      cursor: pointer; font-family: inherit; letter-spacing: 0.3px;
+    `;
+
+    const revBtn = document.createElement("button");
+    revBtn.textContent = "reverse";
+    revBtn.style.cssText = `
+      flex: 1; padding: 4px 0; background: #7c3aed; color: #fff;
+      border: none; border-radius: 6px; font-size: 12px; font-weight: 700;
+      cursor: pointer; font-family: inherit; letter-spacing: 0.3px;
+    `;
+
+    wrap.appendChild(addBtn);
+    wrap.appendChild(revBtn);
+
+    addBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const { word, hint } = wrap._cardData || {};
+      if (word && hint) submitDuoCard(word, hint, false, addBtn);
+    });
+
+    revBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const { word, hint } = wrap._cardData || {};
+      if (word && hint) submitDuoCard(word, hint, true, revBtn);
+    });
+
+    return wrap;
+  }
+
+  function getDuoHintButton() {
+    if (!duoHintBtn || !document.contains(duoHintBtn)) {
+      duoHintBtn = buildDuoHintButton();
+    }
+    return duoHintBtn;
+  }
+
+  // ── Card submission ───────────────────────────────────────────────
+
+  async function submitDuoCard(word, hint, reversed, clickedBtn) {
+    const front = reversed ? hint : word;
+    const back = reversed ? word : hint;
+
+    // Brief "loading" state on the button
+    const origLabel = clickedBtn.textContent;
+    clickedBtn.textContent = "…";
+    clickedBtn.disabled = true;
+
+    try {
+      const stored = await browser.storage.local.get(["access_token", "selected_deck_id"]);
+
+      if (!stored.access_token || !stored.selected_deck_id) {
+        // No deck selected — open the full panel so user can pick one
+        showPanel(front);
+        const ui = createFloatingUI();
+        if (ui) ui.querySelector("#imitation-back").value = back;
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/decks/${stored.selected_deck_id}/cards`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${stored.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ front, back }),
+      });
+
+      if (!res.ok) throw new Error("server error");
+
+      clickedBtn.textContent = "✓";
+      setTimeout(() => {
+        if (clickedBtn.isConnected) clickedBtn.textContent = origLabel;
+        clickedBtn.disabled = false;
+      }, 1200);
+      return; // skip finally re-enable
+    } catch {
+      clickedBtn.textContent = origLabel;
+    } finally {
+      clickedBtn.disabled = false;
+    }
+  }
+
+  // ── Text extraction from Duolingo hint popover ────────────────────
+
+  function extractHintData(popover) {
+    // Walk all text nodes, collecting non-empty strings, skipping our own
+    // button and script/style content.
+    const texts = [];
+    const walker = document.createTreeWalker(popover, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (node.parentElement?.closest("#imitation-duo-hint-btn"))
+          return NodeFilter.FILTER_REJECT;
+        const tag = node.parentElement?.tagName?.toLowerCase();
+        if (tag === "script" || tag === "style") return NodeFilter.FILTER_REJECT;
+        const t = node.textContent.trim();
+        return t.length > 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      },
+    });
+
+    let node;
+    while ((node = walker.nextNode())) {
+      const t = node.textContent.trim();
+      // Deduplicate adjacent identical strings
+      if (texts[texts.length - 1] !== t) texts.push(t);
+    }
+
+    if (texts.length >= 2) return { word: texts[0], hint: texts[1] };
+    return null;
+  }
+
+  // ── Popover detection ─────────────────────────────────────────────
+
+  function isLikelyHintPopover(el) {
+    if (!el?.matches) return false;
+
+    // data-test attribute — most reliable signal in Duolingo's codebase
+    const dt = el.dataset?.test || "";
+    if (dt.includes("hint") || dt.includes("popover") || dt.includes("token-hint"))
+      return true;
+
+    // Descendant with hint data-test (popover wrapper added before content)
+    if (el.querySelector?.('[data-test*="hint"]')) return true;
+
+    // ARIA role
+    if (el.getAttribute("role") === "tooltip") return true;
+
+    // Class name heuristic (catches renamed classes)
+    const cls = (el.className || "").toLowerCase();
+    if (
+      cls.includes("hint-popover") ||
+      cls.includes("hintpopover") ||
+      cls.includes("token-hint") ||
+      cls.includes("word-hint") ||
+      cls.includes("hint-box")
+    )
+      return true;
+
+    return false;
+  }
+
+  function tryAttachButtons(el) {
+    if (!isLikelyHintPopover(el)) return;
+    if (el.querySelector("#imitation-duo-hint-btn")) return; // already attached
+
+    // Small delay so Duolingo can finish populating the popover content
+    setTimeout(() => {
+      const data = extractHintData(el);
+      if (!data || !data.word || !data.hint) return;
+
+      const btn = getDuoHintButton();
+      btn._cardData = data;
+
+      // Remove from wherever it might currently be attached
+      btn.remove();
+      el.appendChild(btn);
+    }, 80);
+  }
+
+  // ── MutationObserver — watch for popovers appearing ──────────────
+
+  function watchForDuolingoHints() {
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+
+          // The node itself might be the popover
+          tryAttachButtons(node);
+
+          // Or the popover could be a descendant (e.g., inside a portal wrapper)
+          node.querySelectorAll?.(
+            '[data-test*="hint"], [data-test*="popover"], ' +
+            '[role="tooltip"], [class*="hint-popover"], ' +
+            '[class*="hintPopover"], [class*="HintPopover"]'
+          ).forEach(tryAttachButtons);
+        }
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
 })();
