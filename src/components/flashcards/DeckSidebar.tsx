@@ -9,6 +9,8 @@ type DeckSidebarProps = {
     onSelectDeck: (id: number) => void;
     onCreateDeck: (name: string, description: string) => void;
     onDeleteDeck: (id: number) => void;
+    onReorder: (newDecks: Deck[]) => void;
+    onRefresh: () => void;
     loading: boolean;
 };
 
@@ -18,11 +20,22 @@ export default function DeckSidebar({
     onSelectDeck,
     onCreateDeck,
     onDeleteDeck,
+    onReorder,
+    onRefresh,
     loading,
 }: DeckSidebarProps) {
     const [showCreate, setShowCreate] = useState(false);
     const [newName, setNewName] = useState("");
     const [newDesc, setNewDesc] = useState("");
+    const [refreshing, setRefreshing] = useState(false);
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        await onRefresh();
+        setRefreshing(false);
+    };
+    const [dragSrcIdx, setDragSrcIdx] = useState<number | null>(null);
+    const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
     const handleCreate = () => {
         if (newName.trim()) {
@@ -33,19 +46,39 @@ export default function DeckSidebar({
         }
     };
 
+    const handleDrop = (toIdx: number) => {
+        if (dragSrcIdx === null || dragSrcIdx === toIdx) return;
+        const newDecks = [...decks];
+        const [moved] = newDecks.splice(dragSrcIdx, 1);
+        newDecks.splice(toIdx, 0, moved);
+        onReorder(newDecks);
+        setDragSrcIdx(null);
+        setDragOverIdx(null);
+    };
+
     return (
         <aside className="w-60 border-r border-white/10 flex flex-col h-[calc(100vh-56px)] bg-[#0a0a0a]">
             <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-white/50">
                     Decks
                 </h2>
-                <button
-                    onClick={() => setShowCreate(true)}
-                    className="w-7 h-7 flex items-center justify-center rounded-md text-white/50 hover:text-white hover:bg-white/10 transition text-lg leading-none"
-                    title="Create new deck"
-                >
-                    +
-                </button>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={handleRefresh}
+                        disabled={refreshing}
+                        className="w-7 h-7 flex items-center justify-center rounded-md text-white/50 hover:text-white hover:bg-white/10 transition text-sm disabled:opacity-30"
+                        title="Refresh decks"
+                    >
+                        <span className={refreshing ? "animate-spin inline-block" : ""}>↻</span>
+                    </button>
+                    <button
+                        onClick={() => setShowCreate(true)}
+                        className="w-7 h-7 flex items-center justify-center rounded-md text-white/50 hover:text-white hover:bg-white/10 transition text-lg leading-none"
+                        title="Create new deck"
+                    >
+                        +
+                    </button>
+                </div>
             </div>
 
             {/* Create deck inline form */}
@@ -90,20 +123,45 @@ export default function DeckSidebar({
                 ) : decks.length === 0 ? (
                     <p className="text-white/40 text-sm text-center py-4">No decks yet</p>
                 ) : (
-                    decks.map((deck) => {
+                    decks.map((deck, i) => {
                         const isActive = activeDeckId === deck.id;
+                        const isDragging = dragSrcIdx === i;
+                        const isOver = dragOverIdx === i && dragSrcIdx !== i;
                         const total = deck.new_count + deck.learning_count + deck.reviewed_count;
                         return (
                             <div
                                 key={deck.id}
-                                className={`group relative w-full text-left px-3 py-2.5 rounded-lg transition-all cursor-pointer ${
+                                draggable
+                                onDragStart={(e) => {
+                                    setDragSrcIdx(i);
+                                    e.dataTransfer.effectAllowed = "move";
+                                }}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    e.dataTransfer.dropEffect = "move";
+                                    if (dragOverIdx !== i) setDragOverIdx(i);
+                                }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    handleDrop(i);
+                                }}
+                                onDragEnd={() => {
+                                    setDragSrcIdx(null);
+                                    setDragOverIdx(null);
+                                }}
+                                className={`group relative w-full text-left px-3 py-2.5 rounded-lg transition-all cursor-pointer select-none ${
                                     isActive
                                         ? "bg-sky-600/20 border border-sky-500/40 text-white"
                                         : "border border-transparent hover:bg-white/5 text-white/80"
+                                } ${isDragging ? "opacity-40" : ""} ${
+                                    isOver ? "border-t-2 border-t-sky-400" : ""
                                 }`}
                                 onClick={() => onSelectDeck(deck.id)}
                             >
                                 <div className="flex items-center justify-between">
+                                    <span className="opacity-0 group-hover:opacity-30 text-white mr-1.5 text-xs cursor-grab active:cursor-grabbing">
+                                        ⠿
+                                    </span>
                                     <div className="font-medium text-sm truncate flex-1">{deck.name}</div>
                                     <button
                                         onClick={(e) => {

@@ -6,6 +6,7 @@
   let floatingUI = null;
   let currentSelection = "";
   let highlightEnabled = true;
+  let autoSubmitInterval = null;
 
   // Load setting once and keep it in sync
   browser.storage.local.get("highlight_enabled").then((stored) => {
@@ -69,6 +70,12 @@
           "></textarea>
         </div>
         <div id="imitation-msg" style="font-size:12px; margin-bottom:8px; display:none;"></div>
+        <div id="imitation-timer" style="display:none; margin-bottom:8px;">
+          <div class="imitation-timer-text" style="font-size:11px; color:rgba(255,255,255,0.5); margin-bottom:4px;"></div>
+          <div style="height:3px; background:rgba(255,255,255,0.1); border-radius:2px;">
+            <div class="imitation-timer-bar" style="height:100%; background:#0284c7; border-radius:2px; width:100%; transition:width 0.95s linear;"></div>
+          </div>
+        </div>
         <button id="imitation-add" style="
           width:100%; padding:10px; background:#0284c7; color:#fff; border:none;
           border-radius:8px; font-size:14px; font-weight:500; cursor:pointer;
@@ -81,6 +88,10 @@
     // Close handlers
     container.querySelector("#imitation-close").addEventListener("click", hidePanel);
     container.querySelector("#imitation-overlay").addEventListener("click", hidePanel);
+
+    // Stop auto-submit timer if user starts editing
+    container.querySelector("#imitation-front").addEventListener("focus", stopAutoSubmitTimer);
+    container.querySelector("#imitation-back").addEventListener("focus", stopAutoSubmitTimer);
 
     // Add card handler
     container.querySelector("#imitation-add").addEventListener("click", handleAddCard);
@@ -105,8 +116,58 @@
 
   function hidePanel() {
     if (!floatingUI) return;
+    stopAutoSubmitTimer();
     floatingUI.querySelector("#imitation-overlay").style.display = "none";
     floatingUI.querySelector("#imitation-panel").style.display = "none";
+  }
+
+  function stopAutoSubmitTimer() {
+    if (autoSubmitInterval) {
+      clearInterval(autoSubmitInterval);
+      autoSubmitInterval = null;
+    }
+    const timerEl = floatingUI?.querySelector("#imitation-timer");
+    if (timerEl) timerEl.style.display = "none";
+  }
+
+  function startAutoSubmitTimer(seconds) {
+    stopAutoSubmitTimer();
+    if (!floatingUI) return;
+
+    const timerEl = floatingUI.querySelector("#imitation-timer");
+    const barEl = timerEl.querySelector(".imitation-timer-bar");
+    const textEl = timerEl.querySelector(".imitation-timer-text");
+
+    timerEl.style.display = "block";
+    let remaining = seconds;
+
+    function tick() {
+      textEl.textContent = `Adding in ${remaining}…`;
+      barEl.style.width = `${(remaining / seconds) * 100}%`;
+    }
+    tick();
+
+    autoSubmitInterval = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) {
+        stopAutoSubmitTimer();
+        handleAddCard().then(() => hidePanel());
+      } else {
+        tick();
+      }
+    }, 1000);
+  }
+
+  async function showDuoPanel(front, back) {
+    showPanel(front);
+    if (!floatingUI) return;
+    floatingUI.querySelector("#imitation-back").value = back;
+
+    // Only auto-submit if there's already a deck selected
+    const stored = await browser.storage.local.get(["access_token", "selected_deck_id"]);
+    if (stored.access_token && stored.selected_deck_id) {
+      startAutoSubmitTimer(3);
+    }
   }
 
   function showMessage(text, isError) {
@@ -430,14 +491,14 @@
       e.stopPropagation();
       e.preventDefault();
       const { word, hint } = wrap._cardData || {};
-      if (word && hint) submitDuoCard(word, hint, false, addBtn);
+      if (word && hint) submitDuoCard(word, hint, false);
     });
 
     revBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
       const { word, hint } = wrap._cardData || {};
-      if (word && hint) submitDuoCard(word, hint, true, revBtn);
+      if (word && hint) submitDuoCard(word, hint, true);
     });
 
     return wrap;
@@ -452,48 +513,10 @@
 
   // ── Card submission ───────────────────────────────────────────────
 
-  async function submitDuoCard(word, hint, reversed, clickedBtn) {
+  function submitDuoCard(word, hint, reversed) {
     const front = reversed ? hint : word;
     const back = reversed ? word : hint;
-
-    // Brief "loading" state on the button
-    const origLabel = clickedBtn.textContent;
-    clickedBtn.textContent = "…";
-    clickedBtn.disabled = true;
-
-    try {
-      const stored = await browser.storage.local.get(["access_token", "selected_deck_id"]);
-
-      if (!stored.access_token || !stored.selected_deck_id) {
-        // No deck selected — open the full panel so user can pick one
-        showPanel(front);
-        const ui = createFloatingUI();
-        if (ui) ui.querySelector("#imitation-back").value = back;
-        return;
-      }
-
-      const res = await fetch(`${API_URL}/decks/${stored.selected_deck_id}/cards`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${stored.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ front, back }),
-      });
-
-      if (!res.ok) throw new Error("server error");
-
-      clickedBtn.textContent = "✓";
-      setTimeout(() => {
-        if (clickedBtn.isConnected) clickedBtn.textContent = origLabel;
-        clickedBtn.disabled = false;
-      }, 1200);
-      return; // skip finally re-enable
-    } catch {
-      clickedBtn.textContent = origLabel;
-    } finally {
-      clickedBtn.disabled = false;
-    }
+    showDuoPanel(front, back);
   }
 
   // ── Text extraction from Duolingo hint popover ────────────────────

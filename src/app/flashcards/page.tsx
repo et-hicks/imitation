@@ -26,6 +26,20 @@ export type Card = {
     review_count?: number;
 };
 
+const DECK_ORDER_KEY = "flashcards_deck_order";
+
+function applyDeckOrder(decks: Deck[], savedIds: number[]): Deck[] {
+    const ordered: Deck[] = [];
+    for (const id of savedIds) {
+        const deck = decks.find((d) => d.id === id);
+        if (deck) ordered.push(deck);
+    }
+    for (const deck of decks) {
+        if (!savedIds.includes(deck.id)) ordered.push(deck);
+    }
+    return ordered;
+}
+
 export default function FlashcardsPage() {
     const { session, isAuthenticated } = useAuth();
     const [decks, setDecks] = useState<Deck[]>([]);
@@ -42,10 +56,14 @@ export default function FlashcardsPage() {
                 headers: { Authorization: `Bearer ${session.access_token}` },
             });
             if (res.ok) {
-                const data = await res.json();
-                setDecks(data);
-                if (data.length > 0 && !activeDeckId) {
-                    setActiveDeckId(data[0].id);
+                const data: Deck[] = await res.json();
+                const savedIds: number[] = JSON.parse(
+                    localStorage.getItem(DECK_ORDER_KEY) ?? "[]"
+                );
+                const ordered = applyDeckOrder(data, savedIds);
+                setDecks(ordered);
+                if (ordered.length > 0 && !activeDeckId) {
+                    setActiveDeckId(ordered[0].id);
                 }
             }
         } catch (err) {
@@ -54,6 +72,11 @@ export default function FlashcardsPage() {
             setLoading(false);
         }
     }, [session?.access_token, activeDeckId]);
+
+    const handleReorder = (newDecks: Deck[]) => {
+        setDecks(newDecks);
+        localStorage.setItem(DECK_ORDER_KEY, JSON.stringify(newDecks.map((d) => d.id)));
+    };
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -136,6 +159,8 @@ export default function FlashcardsPage() {
                 }}
                 onCreateDeck={handleCreateDeck}
                 onDeleteDeck={handleDeleteDeck}
+                onReorder={handleReorder}
+                onRefresh={fetchDecks}
                 loading={loading}
             />
 

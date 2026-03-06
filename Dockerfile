@@ -13,7 +13,7 @@ WORKDIR /app
 
 # Install node modules
 COPY package-lock.json package.json ./
-RUN npm ci --include=dev
+RUN npm install --package-lock-only && npm ci --include=dev
 
 # Stage 2: Build the application
 FROM base AS builder

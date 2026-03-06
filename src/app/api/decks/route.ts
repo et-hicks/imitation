@@ -13,45 +13,25 @@ export async function GET(request: NextRequest) {
 
   const user = await getOrCreateUser(authResult);
 
-  const decks = await pool.query(
-    `SELECT d.id, d.name, d.description,
-            (SELECT COUNT(*) FROM cards c WHERE c.deck_id = d.id)::int AS card_count
+  const { rows } = await pool.query(
+    `SELECT
+       d.id,
+       d.name,
+       d.description,
+       COUNT(c.id)::int                                                             AS card_count,
+       COUNT(c.id) FILTER (WHERE sq.id IS NULL)::int                               AS new_count,
+       COUNT(c.id) FILTER (WHERE sq.id IS NOT NULL AND sq.next_review_at <= NOW())::int AS learning_count,
+       COUNT(c.id) FILTER (WHERE sq.id IS NOT NULL AND sq.next_review_at > NOW())::int  AS reviewed_count
      FROM decks d
+     LEFT JOIN cards c ON c.deck_id = d.id
+     LEFT JOIN study_queue sq ON sq.card_id = c.id AND sq.user_id = $2
      WHERE d.user_id = $1
+     GROUP BY d.id, d.name, d.description, d.updated_at
      ORDER BY d.updated_at DESC`,
-    [user.id]
+    [user.id, user.id]
   );
 
-  const result = [];
-  for (const deck of decks.rows) {
-    // Get counts - only count cards as "due" if next_review_at <= NOW()
-    const counts = await pool.query(
-      `SELECT
-         COUNT(*) FILTER (WHERE sq.next_review_at <= NOW())::int AS due_count,
-         COUNT(*)::int AS tracked_count
-       FROM study_queue sq
-       JOIN cards c ON c.id = sq.card_id
-       WHERE c.deck_id = $1 AND sq.user_id = $2`,
-      [deck.id, user.id]
-    );
-
-    const tracked = counts.rows[0]?.tracked_count || 0;
-    const dueFromQueue = counts.rows[0]?.due_count || 0;
-    const newCount = deck.card_count - tracked;
-    const reviewedCount = tracked - dueFromQueue;
-
-    result.push({
-      id: deck.id,
-      name: deck.name,
-      description: deck.description,
-      card_count: deck.card_count,
-      new_count: newCount,
-      learning_count: dueFromQueue,
-      reviewed_count: reviewedCount,
-    });
-  }
-
-  return jsonResponse(result);
+  return jsonResponse(rows);
 }
 
 export async function POST(request: NextRequest) {
