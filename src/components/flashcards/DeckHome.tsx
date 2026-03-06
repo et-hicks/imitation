@@ -18,6 +18,8 @@ type EditState = {
     back: string;
 };
 
+type UploadingField = "newFront" | "newBack" | "editFront" | "editBack" | null;
+
 export default function DeckHome({ deck, session, onStartStudy, onStartStudyAll, onRefresh }: DeckHomeProps) {
     const [cards, setCards] = useState<Card[]>([]);
     const [showAddCard, setShowAddCard] = useState(false);
@@ -27,6 +29,8 @@ export default function DeckHome({ deck, session, onStartStudy, onStartStudyAll,
     const [editingCardId, setEditingCardId] = useState<number | null>(null);
     const [editState, setEditState] = useState<EditState>({ front: "", back: "" });
     const [savingEdit, setSavingEdit] = useState(false);
+    const [uploadingField, setUploadingField] = useState<UploadingField>(null);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchCards = async () => {
@@ -70,6 +74,37 @@ export default function DeckHome({ deck, session, onStartStudy, onStartStudyAll,
             }
         } catch (err) {
             console.error("Failed to add card:", err);
+        }
+    };
+
+    const handleImageUpload = async (file: File, field: UploadingField) => {
+        if (!session?.access_token || !field) return;
+        setUploadingField(field);
+        setUploadError(null);
+        try {
+            const form = new FormData();
+            form.append("file", file);
+            const res = await fetch(`${BACKEND_URL}/upload-image`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${session.access_token}` },
+                body: form,
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.detail ?? "Upload failed");
+            }
+            const { url } = await res.json();
+            const insertion = `\n![image](${url})`;
+            if (field === "newFront") setNewFront((v) => v + insertion);
+            else if (field === "newBack") setNewBack((v) => v + insertion);
+            else if (field === "editFront") setEditState((s) => ({ ...s, front: s.front + insertion }));
+            else if (field === "editBack") setEditState((s) => ({ ...s, back: s.back + insertion }));
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : "Upload failed";
+            setUploadError(msg);
+            setTimeout(() => setUploadError(null), 4000);
+        } finally {
+            setUploadingField(null);
         }
     };
 
@@ -209,15 +244,50 @@ export default function DeckHome({ deck, session, onStartStudy, onStartStudyAll,
                             onChange={(e) => setNewFront(e.target.value)}
                             autoFocus
                             rows={3}
-                            className="w-full bg-black border border-white/20 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-sky-500/60 resize-y font-mono"
+                            className="w-full bg-black border border-white/20 rounded-lg px-3 py-2 text-sm mb-1 focus:outline-none focus:border-sky-500/60 resize-y font-mono"
                         />
+                        <label className="block mb-2">
+                            <span className={`text-xs cursor-pointer transition ${uploadingField === "newFront" ? "text-white/30" : "text-white/30 hover:text-sky-400"}`}>
+                                {uploadingField === "newFront" ? "uploading…" : "📎 attach image"}
+                            </span>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                disabled={uploadingField !== null}
+                                onChange={(e) => {
+                                    const f = e.target.files?.[0];
+                                    if (f) handleImageUpload(f, "newFront");
+                                    e.target.value = "";
+                                }}
+                            />
+                        </label>
                         <textarea
                             placeholder="Back — answer (supports markdown, code blocks, image URLs)"
                             value={newBack}
                             onChange={(e) => setNewBack(e.target.value)}
                             rows={3}
-                            className="w-full bg-black border border-white/20 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-sky-500/60 resize-y font-mono"
+                            className="w-full bg-black border border-white/20 rounded-lg px-3 py-2 text-sm mb-1 focus:outline-none focus:border-sky-500/60 resize-y font-mono"
                         />
+                        <label className="block mb-3">
+                            <span className={`text-xs cursor-pointer transition ${uploadingField === "newBack" ? "text-white/30" : "text-white/30 hover:text-sky-400"}`}>
+                                {uploadingField === "newBack" ? "uploading…" : "📎 attach image"}
+                            </span>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                disabled={uploadingField !== null}
+                                onChange={(e) => {
+                                    const f = e.target.files?.[0];
+                                    if (f) handleImageUpload(f, "newBack");
+                                    e.target.value = "";
+                                }}
+                            />
+                        </label>
+                        {uploadError && (
+                            <div className="text-xs text-red-400 mb-2">{uploadError}</div>
+                        )}
                         <div className="flex gap-2">
                             <button
                                 onClick={handleAddCard}
@@ -259,15 +329,50 @@ export default function DeckHome({ deck, session, onStartStudy, onStartStudyAll,
                                             autoFocus
                                             rows={3}
                                             placeholder="Front"
-                                            className="w-full bg-black border border-sky-500/40 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-sky-500/60 resize-y font-mono"
+                                            className="w-full bg-black border border-sky-500/40 rounded-lg px-3 py-2 text-sm mb-1 focus:outline-none focus:border-sky-500/60 resize-y font-mono"
                                         />
+                                        <label className="block mb-2">
+                                            <span className={`text-xs cursor-pointer transition ${uploadingField === "editFront" ? "text-white/30" : "text-white/30 hover:text-sky-400"}`}>
+                                                {uploadingField === "editFront" ? "uploading…" : "📎 attach image"}
+                                            </span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                disabled={uploadingField !== null}
+                                                onChange={(e) => {
+                                                    const f = e.target.files?.[0];
+                                                    if (f) handleImageUpload(f, "editFront");
+                                                    e.target.value = "";
+                                                }}
+                                            />
+                                        </label>
                                         <textarea
                                             value={editState.back}
                                             onChange={(e) => setEditState((s) => ({ ...s, back: e.target.value }))}
                                             rows={3}
                                             placeholder="Back"
-                                            className="w-full bg-black border border-sky-500/40 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-sky-500/60 resize-y font-mono"
+                                            className="w-full bg-black border border-sky-500/40 rounded-lg px-3 py-2 text-sm mb-1 focus:outline-none focus:border-sky-500/60 resize-y font-mono"
                                         />
+                                        <label className="block mb-3">
+                                            <span className={`text-xs cursor-pointer transition ${uploadingField === "editBack" ? "text-white/30" : "text-white/30 hover:text-sky-400"}`}>
+                                                {uploadingField === "editBack" ? "uploading…" : "📎 attach image"}
+                                            </span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                disabled={uploadingField !== null}
+                                                onChange={(e) => {
+                                                    const f = e.target.files?.[0];
+                                                    if (f) handleImageUpload(f, "editBack");
+                                                    e.target.value = "";
+                                                }}
+                                            />
+                                        </label>
+                                        {uploadError && (
+                                            <div className="text-xs text-red-400 mb-2">{uploadError}</div>
+                                        )}
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => handleSaveEdit(card.id)}
