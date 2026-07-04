@@ -34,13 +34,13 @@ export default function CareersPage() {
             </span>
           </a>
         </div>
-        
+
         {/* Career Summary */}
         <div className="mb-10">
           <p className="text-lg text-gray-200 leading-relaxed">
-            A seasoned software engineer with 4+ years of experience building scalable financial systems and customer-focused products. 
-            From scaling platforms that handle 1.5 billion monthly requests at JPMorgan Chase to helping startups grow from 2 to 8+ customers, 
-            I have consistently delivered high-impact solutions while mentoring the next generation of engineers.
+            A senior software engineer with 6+ years of experience building regulated financial systems, high-volume data platforms, and customer-focused products.
+            Currently developing and maintaining commodities risk and regulatory reporting systems at Capital One, with a track record of scaling APIs to 1.5 billion monthly requests at JPMorgan Chase
+            and helping startups grow from 2 to 8+ customers through reliable backend systems, pragmatic automation, and strong engineering mentorship.
           </p>
         </div>
 
@@ -60,15 +60,34 @@ export default function CareersPage() {
         <section className="mb-10">
           <h2 className="mb-6 text-2xl font-semibold text-white border-b border-gray-700 pb-2">Work Experience</h2>
 
+          {/* Capital One */}
+          <div className="mb-8">
+            <h3 className="text-xl text-white font-medium">Senior Software Engineer</h3>
+            <div className="flex justify-between items-center text-gray-300 mt-1 mb-3">
+              <span>Capital One</span>
+              <span>Dec 2025 - Present</span>
+            </div>
+            <p className="text-gray-200 mb-3 italic">
+              Building and operating high-volume commodities reporting systems for risk, regulatory, and third-party reporting workflows across cloud-hosted Java services.
+            </p>
+            <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
+              <li>Develops and maintains Java microservices that generate commodities risk and regulatory reports for government-facing submissions and third-party stakeholders</li>
+              <li>Owns SQL-backed trade ingestion and reporting workflows that import dozens of gigabytes of commodity trade data per day for downstream analytics and compliance use cases</li>
+              <li>Operates resilient batch jobs and production APIs across AWS services including EC2, S3, Secrets Manager, and Step Functions state machines</li>
+              <li>Stewards third-party vendor connectivity with Triple Point Software, supporting reliable commodity trade data exchange and reporting continuity</li>
+              <li>Applies Claude and Gemini in daily engineering workflows to accelerate debugging, implementation planning, documentation, and code review readiness</li>
+            </ul>
+          </div>
+
           {/* JPMorgan Chase */}
           <div className="mb-8">
             <h3 className="text-xl text-white font-medium">Software Engineer II</h3>
             <div className="flex justify-between items-center text-gray-300 mt-1 mb-3">
               <span>JPMorgan Chase</span>
-              <span>Jul 2022 - Present</span>
+              <span>Jul 2022 - Dec 2025</span>
             </div>
             <p className="text-gray-200 mb-3 italic">
-              Currently building fraud-resistant financial APIs that handle massive scale, while leading architectural improvements and mentoring junior developers.
+              Built fraud-resistant financial APIs at massive scale, while leading architectural improvements and mentoring junior developers.
             </p>
             <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
               <li>Implements the Financial Data Exchange API standard, a user consent and permissions based financial API dealing with sensitive transactions information, with fraud-resistant systems in mind</li>
@@ -121,13 +140,13 @@ export default function CareersPage() {
           <h2 className="mb-4 text-2xl font-semibold text-white border-b border-gray-700 pb-2">Languages and Skills</h2>
           <div className="space-y-3">
             <p className="text-gray-300">
-              <span className="text-white font-semibold">Technology:</span> Java (Spring), Go, Python, MySQL, Kafka, React, JavaScript, PixiJS, WebRTC
+              <span className="text-white font-semibold">Technology:</span> Java, Spring, Go, Python, SQL, MySQL, Kafka, React, JavaScript, PixiJS, WebRTC
             </p>
             <p className="text-gray-300">
-              <span className="text-white font-semibold">Architecture & Infra:</span> Microservices, AWS, Jenkins, Terraform
+              <span className="text-white font-semibold">Architecture & Infra:</span> Microservices, REST APIs, batch processing, AWS, EC2, S3, Secrets Manager, Step Functions, Jenkins, Terraform
             </p>
             <p className="text-gray-300">
-              <span className="text-white font-semibold">Collaboration:</span> Cross-functional teamwork, Agile, Technical mentorship
+              <span className="text-white font-semibold">Collaboration:</span> Cross-functional teamwork, Agile, technical mentorship, vendor integrations, Claude, Gemini
             </p>
           </div>
         </section>
@@ -135,4 +154,3 @@ export default function CareersPage() {
     </main>
   );
 }
-
