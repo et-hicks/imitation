@@ -75,6 +75,8 @@ export default function CareersPage() {
               <li>Owns SQL-backed trade ingestion and reporting workflows that import dozens of gigabytes of commodity trade data per day for downstream analytics and compliance use cases</li>
               <li>Operates resilient batch jobs and production APIs across AWS services including EC2, S3, Secrets Manager, and Step Functions state machines</li>
               <li>Stewards third-party vendor connectivity with Triple Point Software, supporting reliable commodity trade data exchange and reporting continuity</li>
+              <li>Independently implemented and verified OpenTelemetry instrumentation across approximately a dozen production Java microservices, centralizing processing telemetry for commodities risk and reporting workflows</li>
+              <li>Built and hardened production-ready test suites across maintained microservices, verifying that human- and AI-assisted code behaves as intended before release</li>
               <li>Applies Claude and Gemini in daily engineering workflows to accelerate debugging, implementation planning, documentation, and code review readiness</li>
             </ul>
           </div>
