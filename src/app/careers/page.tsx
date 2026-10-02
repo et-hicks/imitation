@@ -72,10 +72,12 @@ export default function CareersPage() {
             </p>
             <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
               <li>Develops and maintains Java microservices that generate commodities risk and regulatory reports for government-facing submissions and third-party stakeholders</li>
-              <li>Owns SQL-backed trade ingestion and reporting workflows that import dozens of gigabytes of commodity trade data per day for downstream analytics and compliance use cases</li>
+              <li>Owns Oracle SQL-backed trade ingestion and reporting workflows that import dozens of gigabytes of commodity trade data per day for downstream analytics and compliance use cases</li>
               <li>Operates resilient batch jobs and production APIs across AWS services including EC2, S3, Secrets Manager, and Step Functions state machines</li>
+              <li>Builds and deploys Java microservices to production through CI/CD pipelines, with Cucumber test files running live QA checks inside the pipeline</li>
               <li>Stewards third-party vendor connectivity with Triple Point Software, supporting reliable commodity trade data exchange and reporting continuity</li>
               <li>Independently implemented and verified OpenTelemetry instrumentation across approximately a dozen production Java microservices, centralizing processing telemetry for commodities risk and reporting workflows</li>
+              <li>Watches production health with Splunk and AWS CloudWatch for logging, PagerDuty for alerting, and Sentry and New Relic for monitoring</li>
               <li>Built and hardened production-ready test suites across maintained microservices, verifying that human- and AI-assisted code behaves as intended before release</li>
               <li>Applies Claude and Gemini in daily engineering workflows to accelerate debugging, implementation planning, documentation, and code review readiness</li>
             </ul>
@@ -93,11 +95,11 @@ export default function CareersPage() {
             </p>
             <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
               <li>Implements the Financial Data Exchange API standard, a user consent and permissions based financial API dealing with sensitive transactions information, with fraud-resistant systems in mind</li>
-              <li>Designed and scaled a REST-based microservices platform handling 1.5 billion monthly requests with high reliability and low latency</li>
+              <li>Designed and scaled an event-driven REST-based microservices platform handling 1.5 billion monthly requests with high reliability and low latency</li>
               <li>Led transition from a monolithic codebase to a Spring-based microservices architecture, cutting server costs by 50%</li>
-              <li>Developed Kafka-based web-hook notification infrastructure to inform clients about consenting operations, reducing API polling loads on servers by 100%</li>
+              <li>Developed event-driven Kafka-based web-hook notification infrastructure to inform clients about consenting operations, reducing API polling loads on servers by 100%</li>
               <li>Integrated Redis-based caching mechanisms for frequent repeated REST calls, saving up to 100 milliseconds per call, resulting in thousands of dollars saved in compute costs, and better customer response times</li>
-              <li>Automated Jenkins-based QA and Production CI/CD pipelines, resulting in 30+ minute faster deployment times, saving engineering headaches, and reducing time to resolution for rare production incidents</li>
+              <li>Automated Jenkins-based QA and Production CI/CD pipelines, with Cucumber test files running live QA checks in the pipeline, resulting in 30+ minute faster deployment times, saving engineering headaches, and reducing time to resolution for rare production incidents</li>
               <li>Championed engineering mentorship and guided 4 interns every summer, showing them how to write and maintain production level code, more advanced features of git and linux, and facilitating a learning environment</li>
             </ul>
           </div>
@@ -142,10 +144,10 @@ export default function CareersPage() {
           <h2 className="mb-4 text-2xl font-semibold text-white border-b border-gray-700 pb-2">Languages and Skills</h2>
           <div className="space-y-3">
             <p className="text-gray-300">
-              <span className="text-white font-semibold">Technology:</span> Java, Spring, Go, Python, SQL, MySQL, Kafka, React, JavaScript, PixiJS, WebRTC
+              <span className="text-white font-semibold">Technology:</span> Java, Spring, Go, Python, SQL (Oracle, MySQL), Kafka, React, JavaScript, PixiJS, WebRTC
             </p>
             <p className="text-gray-300">
-              <span className="text-white font-semibold">Architecture & Infra:</span> Microservices, REST APIs, batch processing, AWS, EC2, S3, Secrets Manager, Step Functions, Jenkins, Terraform
+              <span className="text-white font-semibold">Architecture & Infra:</span> Microservices, REST APIs, batch processing, AWS, EC2, S3, Secrets Manager, Step Functions, Jenkins, Terraform, Cucumber, Splunk, CloudWatch, PagerDuty, Sentry, New Relic, OpenTelemetry
             </p>
             <p className="text-gray-300">
               <span className="text-white font-semibold">Collaboration:</span> Cross-functional teamwork, Agile, technical mentorship, vendor integrations, Claude, Gemini
