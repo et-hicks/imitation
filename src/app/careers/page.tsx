@@ -144,13 +144,19 @@ export default function CareersPage() {
           <h2 className="mb-4 text-2xl font-semibold text-white border-b border-gray-700 pb-2">Languages and Skills</h2>
           <div className="space-y-3">
             <p className="text-gray-300">
-              <span className="text-white font-semibold">Technology:</span> Java, Spring, Go, Python, SQL (Oracle, MySQL), Kafka, React, JavaScript, PixiJS, WebRTC
+              <span className="text-white font-semibold">Languages:</span> Java, Python, Go, SQL (Oracle, MySQL), JavaScript
             </p>
             <p className="text-gray-300">
-              <span className="text-white font-semibold">Architecture & Infra:</span> Microservices, REST APIs, batch processing, AWS, EC2, S3, Secrets Manager, Step Functions, Jenkins, Terraform, Cucumber, Splunk, CloudWatch, PagerDuty, Sentry, New Relic, OpenTelemetry
+              <span className="text-white font-semibold">Backend & Architecture:</span> Spring, microservices, REST APIs, event-driven systems, Kafka, Redis, batch processing, Financial Data Exchange (FDX) API standard
             </p>
             <p className="text-gray-300">
-              <span className="text-white font-semibold">Collaboration:</span> Cross-functional teamwork, Agile, technical mentorship, vendor integrations, Claude, Gemini
+              <span className="text-white font-semibold">Cloud & Infrastructure:</span> AWS (EC2, S3, Secrets Manager, Step Functions, CloudWatch), Terraform, Jenkins CI/CD
+            </p>
+            <p className="text-gray-300">
+              <span className="text-white font-semibold">Observability & Testing:</span> OpenTelemetry, Splunk, New Relic, Sentry, PagerDuty, Cucumber
+            </p>
+            <p className="text-gray-300">
+              <span className="text-white font-semibold">Collaboration:</span> Technical mentorship, cross-functional teamwork, Agile, vendor integrations, AI-assisted development (Claude, Gemini)
             </p>
           </div>
         </section>
